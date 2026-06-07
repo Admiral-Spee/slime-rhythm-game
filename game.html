@@ -518,6 +518,10 @@
                         <span>音效音量 (<span id="valSfxVol">50</span>%):</span>
                         <input type="range" id="sliderSfxVol" min="0" max="100" value="50">
                     </div>
+                    <div class="settings-row">
+                        <span>图案大小缩放 (<span id="valSlimeScale">100</span>%):</span>
+                        <input type="range" id="sliderSlimeScale" min="50" max="150" value="100" step="5">
+                    </div>
                     <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
                         <span>自定义音符外观:</span>
                         <div style="display: flex; gap: 5px; width: 100%;">
@@ -546,6 +550,7 @@
         // --- 核心配置与全局状态 ---
         let themeHueOffset = 0;
         let isLightMode = false;
+        let slimeScaleFactor = 1.0;
         const PUNCH_KEYS = ['s', 'd', 'j', 'k'];
         const LANE_COLORS = ['#ff9800', '#4caf50', '#9c27b0', '#00bcd4']; // 橙、绿、紫、蓝
         const JUDGE_WINDOWS = {
@@ -619,6 +624,13 @@
             if (savedSfxVol !== null) {
                 document.getElementById('sliderSfxVol').value = savedSfxVol;
                 document.getElementById('valSfxVol').textContent = savedSfxVol;
+            }
+            // 图案缩放比例
+            const savedSlimeScale = localStorage.getItem('slime_scale');
+            if (savedSlimeScale !== null) {
+                document.getElementById('sliderSlimeScale').value = savedSlimeScale;
+                document.getElementById('valSlimeScale').textContent = savedSlimeScale;
+                slimeScaleFactor = parseInt(savedSlimeScale) / 100;
             }
             // 自定义图片
             for (let i = 0; i < 4; i++) {
@@ -1618,7 +1630,7 @@
             }
 
             // 2. 绘制底部的4个静止/弹性史莱姆接收器
-            const baseNoteRadius = w / 12;
+            const baseNoteRadius = (w / 12) * slimeScaleFactor;
             for (let l = 0; l < 4; l++) {
                 const rx = getLaneBottomX(l);
                 drawSlime(ctx, rx, judgeY, baseNoteRadius, LANE_COLORS[l], true, false, activeKeys[l], currentBeat, l);
@@ -1772,6 +1784,13 @@
             document.getElementById('valSfxVol').textContent = vol;
             if (sfxGainNode) sfxGainNode.gain.value = vol / 100;
             localStorage.setItem('slime_sfxVol', vol);
+        });
+
+        document.getElementById('sliderSlimeScale').addEventListener('input', (e) => {
+            const scale = e.target.value;
+            document.getElementById('valSlimeScale').textContent = scale;
+            slimeScaleFactor = parseInt(scale) / 100;
+            localStorage.setItem('slime_scale', scale);
         });
 
         // 自定义图片上传事件绑定
