@@ -69,7 +69,7 @@ slime-rhythm-game/
     └── chart1.json    # 谱面文件
 ```
 
-* `song_list.json` 数据格式示例：*
+* `song_list.json` 数据格式示例：
 ```jsonc
 [
   {
@@ -82,7 +82,7 @@ slime-rhythm-game/
 ]
 ```
 
-* `chart.json` 数据格式示例：*
+* `chart.json` 数据格式示例：
 ```jsonc
 {
   "bpmList": [      // BPM 变速节点列表
