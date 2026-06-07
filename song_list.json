@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "title": "饥饿的巨人",
+    "artist": "AI生成",
+    "audio": "music/music1.mp3",
+    "chart": "music/chart1.json"
+  },
+  {
+    "id": "2",
+    "title": "西西弗斯",
+    "artist": "AI生成",
+    "audio": "music/music2.mp3",
+    "chart": "music/chart2.json"
+  },
+  {
+    "id": "3",
+    "title": "ハローセカイ",
+    "artist": "DECO*27",
+    "audio": "music/music3.mp3",
+    "chart": "music/chart3.json"
+  }
+]

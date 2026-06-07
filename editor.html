@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>节奏史莱姆 - 谱面编辑器</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: #051324;
+            color: #b3dfff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 300px;
+            background: rgba(10, 25, 50, 0.9);
+            border-right: 2px solid #257b9e;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        
+        .panel {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #257b9e;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00f2ff;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #257b9e;
+            padding-bottom: 5px;
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        button, .file-btn {
+            background: linear-gradient(135deg, #00f2ff 0%, #006ac2 100%);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        button:hover, .file-btn:hover { filter: brightness(1.2); }
+        
+        input[type="number"], select {
+            background: #020c1a;
+            border: 1px solid #32aaff;
+            color: white;
+            padding: 4px;
+            border-radius: 4px;
+            width: 80px;
+        }
+        
+        /* 隐藏原生文件上传按钮 */
+        input[type="file"] { display: none; }
+        
+        /* 变速列表 */
+        .bpm-list { max-height: 150px; overflow-y: auto; font-size: 12px; margin-top: 10px; }
+        .bpm-item { display: flex; justify-content: space-between; background: #020c1a; padding: 5px; margin-bottom: 2px; }
+        .bpm-item span { color: #ffcc00; }
+        .bpm-item button { padding: 2px 5px; font-size: 10px; background: #c1121f; }
+        
+        /* 编辑器主舞台 */
+        .main-stage {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .audio-controls {
+            width: 100%;
+            padding: 10px 20px;
+            background: #020c1a;
+            border-bottom: 2px solid #257b9e;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        audio { height: 30px; flex-grow: 1; }
+        
+        .canvas-container {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            background: #010610;
+        }
+        
+        canvas {
+            background: #051324;
+            border-left: 2px solid #32aaff;
+            border-right: 2px solid #32aaff;
+            cursor: crosshair;
+        }
+        
+        .status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 左侧控制面板 -->
+    <div class="sidebar">
+        <div class="panel">
+            <div class="panel-title">文件操作</div>
+            <div class="control-row">
+                <label class="file-btn">
+                    导入音乐 (MP3/OGG)
+                    <input type="file" id="audioInput" accept="audio/*">
+                </label>
+            </div>
+            <div class="control-row">
+                <label class="file-btn" style="background: #4caf50;">
+                    导入谱面 (JSON)
+                    <input type="file" id="chartInput" accept=".json">
+                </label>
+                <button onclick="exportChart()" style="background: #ff9800;">导出谱面</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">编辑设置</div>
+            <div class="control-row">
+                <span>节拍吸附 (Snap):</span>
+                <select id="snapSelect">
+                    <option value="1">1/1 (四分音符)</option>
+                    <option value="2">1/2 (八分音符)</option>
+                    <option value="4" selected>1/4 (十六分音符)</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <span>轨道缩放 (Zoom):</span>
+                <input type="number" id="zoomInput" value="200" min="50" max="600" step="10">
+            </div>
+            <div class="control-row">
+                <span>输入模式:</span>
+                <select id="noteTypeSelect">
+                    <option value="short">短按 (Click)</option>
+                    <option value="long">长按 (Drag)</option>
+                </select>
+            </div>
+            <p style="font-size: 11px; color:#aaa; margin-top:10px;">
+                * 鼠标左键：添加音符<br>
+                * 鼠标右键：删除音符<br>
+                * 鼠标滚轮：调整时间轴<br>
+                * 空格键：播放/暂停
+            </p>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">变速管理 (BPM Points)</div>
+            <div class="control-row">
+                <button onclick="addBPMPoint()">+ 在当前拍添加变速</button>
+            </div>
+            <div class="control-row">
+                <span>BPM:</span>
+                <input type="number" id="newBpmInput" value="120">
+            </div>
+            <div class="bpm-list" id="bpmListContainer">
+                <!-- 动态生成BPM列表 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧主体编辑区 -->
+    <div class="main-stage">
+        <div class="audio-controls">
+            <audio id="audioPlayer" controls></audio>
+            <div>播放速度: 
+                <select id="playbackRate" onchange="document.getElementById('audioPlayer').playbackRate = this.value">
+                    <option value="1.0" selected>1.0x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="0.5">0.5x</option>
+                    <option value="0.25">0.25x</option>
+                </select>
+            </div>
+        </div>
+        <div class="canvas-container">
+            <canvas id="editorCanvas" width="400" height="800"></canvas>
+        </div>
+        <div class="status-bar" id="statusBar">
+            Time: 0.000s | Beat: 0.00
+        </div>
+    </div>
+
+    <script>
+        // --- 核心状态与数据 ---
+        let chartData = {
+            bpmList: [{ beat: 0, bpm: 120 }],
+            notes: []
+        };
+        
+        let timingPoints = []; // 内部缓存的时间节点
+        
+        const LANE_COLORS = ['#ff9800', '#4caf50', '#9c27b0', '#00bcd4'];
+        const CANVAS_WIDTH = 400;
+        let BEAT_HEIGHT = 200; // 每一拍在屏幕上占据的像素 (Zoom)
+        let SNAP = 4; // 吸附精度 (默认1/4拍)
+        const PLAYHEAD_Y = 600; // 判定线(播放头)在画布上的固定Y坐标
+
+        // DOM元素
+        const canvas = document.getElementById('editorCanvas');
+        const ctx = canvas.getContext('2d');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const statusBar = document.getElementById('statusBar');
+        const snapSelect = document.getElementById('snapSelect');
+        const zoomInput = document.getElementById('zoomInput');
+        const noteTypeSelect = document.getElementById('noteTypeSelect');
+
+        // 编辑交互状态
+        let isDragging = false;
+        let dragStartNote = null;
+        let mouseBeat = 0;
+        let mouseLane = 0;
+
+        // --- 预览音效状态 ---
+        let audioCtx = null;
+        let sfxPerfect = null;
+        let sfxLong = null;
+        let lastBeat = 0;
+        let activeHolds = new Set();
+
+        async function initAudioCtx() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const fetchSfx = async (path) => {
+                try {
+                    const res = await fetch(path);
+                    if (!res.ok) return null;
+                    const buf = await res.arrayBuffer();
+                    return await audioCtx.decodeAudioData(buf);
+                } catch(e) { return null; }
+            };
+            sfxPerfect = await fetchSfx('sfx/perfect.mp3');
+            sfxLong = await fetchSfx('sfx/long.mp3');
+        }
+
+        window.addEventListener('mousedown', initAudioCtx, { once: true });
+        window.addEventListener('keydown', initAudioCtx, { once: true });
+
+        function playSfx(buffer, loop = false) {
+            if (!buffer || !audioCtx) return null;
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.loop = loop;
+            source.connect(audioCtx.destination);
+            source.start(0);
+            return source;
+        }
+
+        // --- 音乐时间与节拍转换逻辑 (与游戏引擎保持绝对一致) ---
+        function updateTimingPoints() {
+            chartData.bpmList.sort((a, b) => a.beat - b.beat);
+            timingPoints = [];
+            let currentTime = 0;
+            
+            for (let i = 0; i < chartData.bpmList.length; i++) {
+                let tp = chartData.bpmList[i];
+                if (i > 0) {
+                    let prevTp = timingPoints[i - 1];
+                    let beatsDiff = tp.beat - prevTp.beat;
+                    let msPerBeat = 60000 / prevTp.bpm;
+                    currentTime += beatsDiff * msPerBeat;
+                }
+                timingPoints.push({ beat: tp.beat, bpm: tp.bpm, timeMs: currentTime });
+            }
+            renderBPMList();
+        }
+
+        function beatToTime(beat) {
+            if (timingPoints.length === 0) return beat * (60000 / 120);
+            let tp = timingPoints[0];
+            for (let i = timingPoints.length - 1; i >= 0; i--) {
+                if (beat >= timingPoints[i].beat) {
+                    tp = timingPoints[i];
+                    break;
+                }
+            }
+            let beatsDiff = beat - tp.beat;
+            let msPerBeat = 60000 / tp.bpm;
+            return tp.timeMs + beatsDiff * msPerBeat;
+        }
+
+        function timeToBeat(timeMs) {
+            if (timingPoints.length === 0) return timeMs / (60000 / 120);
+            let tp = timingPoints[0];
+            if (timeMs < tp.timeMs) {
+                let msPerBeat = 60000 / tp.bpm;
+                return tp.beat + (timeMs - tp.timeMs) / msPerBeat;
+            }
+            for (let i = timingPoints.length - 1; i >= 0; i--) {
+                if (timeMs >= timingPoints[i].timeMs) {
+                    tp = timingPoints[i];
+                    break;
+                }
+            }
+            let timeDiff = timeMs - tp.timeMs;
+            let msPerBeat = 60000 / tp.bpm;
+            return tp.beat + timeDiff / msPerBeat;
+        }
+
+        // --- BPM UI 管理 ---
+        function renderBPMList() {
+            const container = document.getElementById('bpmListContainer');
+            container.innerHTML = '';
+            chartData.bpmList.forEach((tp, index) => {
+                const div = document.createElement('div');
+                div.className = 'bpm-item';
+                div.innerHTML = `
+                    <span>Beat: ${tp.beat.toFixed(2)} | ${tp.bpm} BPM</span>
+                    ${index > 0 ? `<button onclick="removeBPMPoint(${index})">删除</button>` : '<span>起始</span>'}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.addBPMPoint = function() {
+            let currentBeat = timeToBeat(audioPlayer.currentTime * 1000);
+            currentBeat = Math.round(currentBeat * SNAP) / SNAP; // 根据当前的 SNAP 设置吸附
+            const newBpm = parseFloat(document.getElementById('newBpmInput').value);
+            if (!newBpm || newBpm <= 0) return alert("无效的BPM值");
+            
+            // 检查是否已经在该拍附近有节点
+            const existingIndex = chartData.bpmList.findIndex(tp => Math.abs(tp.beat - currentBeat) < 0.01);
+            if (existingIndex >= 0) {
+                chartData.bpmList[existingIndex].bpm = newBpm;
+            } else {
+                chartData.bpmList.push({ beat: parseFloat(currentBeat.toFixed(3)), bpm: newBpm });
+            }
+            updateTimingPoints();
+        };
+
+        window.removeBPMPoint = function(index) {
+            if (index === 0) return;
+            chartData.bpmList.splice(index, 1);
+            updateTimingPoints();
+        };
+
+        // --- 画布渲染逻辑 ---
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const currentMs = audioPlayer.currentTime * 1000;
+            const currentBeat = timeToBeat(currentMs);
+            
+            // 更新状态栏
+            statusBar.innerHTML = `Time: ${(currentMs/1000).toFixed(3)}s | Beat: ${currentBeat.toFixed(2)}<br>Mouse Beat: ${mouseBeat.toFixed(2)} | Lane: ${mouseLane}`;
+
+            // --- 预览音效触发逻辑 ---
+            if (audioPlayer.paused) {
+                // 暂停时停止所有长按音效
+                activeHolds.forEach(hold => { try { hold.source.stop(); } catch(e){} });
+                activeHolds.clear();
+                lastBeat = currentBeat;
+            } else {
+                // 如果时间轴发生突变(如拖动进度条、拉回重新播放)，重置状态
+                if (Math.abs(currentBeat - lastBeat) > 1.0 || currentBeat < lastBeat) {
+                    activeHolds.forEach(hold => { try { hold.source.stop(); } catch(e){} });
+                    activeHolds.clear();
+                    lastBeat = currentBeat;
+                }
+                
+                chartData.notes.forEach(note => {
+                    if (note.beat >= lastBeat && note.beat < currentBeat) {
+                        if (note.endBeat === undefined) {
+                            playSfx(sfxPerfect);
+                        } else {
+                            const source = playSfx(sfxLong, true);
+                            if (source) activeHolds.add({ note, source });
+                        }
+                    }
+                });
+                
+                // 检查长按音符是否结束
+                activeHolds.forEach(hold => {
+                    if (currentBeat >= hold.note.endBeat) {
+                        try { hold.source.stop(); } catch(e){}
+                        activeHolds.delete(hold);
+                    }
+                });
+                
+                lastBeat = currentBeat;
+            }
+
+            // 1. 绘制轨道背景和分隔线
+            const laneWidth = CANVAS_WIDTH / 4;
+            for (let i = 1; i < 4; i++) {
+                ctx.strokeStyle = '#257b9e';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(i * laneWidth, 0);
+                ctx.lineTo(i * laneWidth, canvas.height);
+                ctx.stroke();
+            }
+
+            // 2. 绘制节拍网格 (动态计算当前视野内的节拍)
+            const beatsInViewTop = currentBeat + (PLAYHEAD_Y / BEAT_HEIGHT);
+            const beatsInViewBottom = currentBeat - ((canvas.height - PLAYHEAD_Y) / BEAT_HEIGHT);
+            
+            const startGridBeat = Math.floor(beatsInViewBottom);
+            const endGridBeat = Math.ceil(beatsInViewTop);
+
+            for (let b = startGridBeat; b <= endGridBeat; b++) {
+                for (let s = 0; s < SNAP; s++) {
+                    const drawBeat = b + (s / SNAP);
+                    const y = PLAYHEAD_Y - (drawBeat - currentBeat) * BEAT_HEIGHT;
+                    
+                    if (y < 0 || y > canvas.height) continue;
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(CANVAS_WIDTH, y);
+                    
+                    if (s === 0) {
+                        // 整数拍：亮色实线，写字
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.font = '12px sans-serif';
+                        ctx.fillText(b, 5, y - 5);
+                    } else {
+                        // 细分拍：暗色虚线
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 3. 绘制判定线 (播放头)
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, PLAYHEAD_Y);
+            ctx.lineTo(CANVAS_WIDTH, PLAYHEAD_Y);
+            ctx.stroke();
+
+            // 4. 绘制所有音符
+            chartData.notes.forEach(note => {
+                const y = PLAYHEAD_Y - (note.beat - currentBeat) * BEAT_HEIGHT;
+                const x = note.lane * laneWidth;
+                
+                // 绘制长条 (如果是长按音符)
+                if (note.endBeat !== undefined) {
+                    const endY = PLAYHEAD_Y - (note.endBeat - currentBeat) * BEAT_HEIGHT;
+                    ctx.fillStyle = LANE_COLORS[note.lane];
+                    ctx.globalAlpha = 0.4;
+                    ctx.fillRect(x + 5, endY, laneWidth - 10, y - endY);
+                    ctx.globalAlpha = 1.0;
+                    
+                    // 绘制尾部收尾块
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(x + 5, endY - 5, laneWidth - 10, 10);
+                }
+                
+                // 绘制头部块
+                if (y >= -50 && y <= canvas.height + 50) {
+                    ctx.fillStyle = LANE_COLORS[note.lane];
+                    ctx.fillRect(x + 5, y - 10, laneWidth - 10, 20);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x + 5, y - 10, laneWidth - 10, 20);
+                }
+            });
+
+            // 5. 绘制当前正在拖拽构建的长按音符
+            if (isDragging && dragStartNote) {
+                const startY = PLAYHEAD_Y - (dragStartNote.beat - currentBeat) * BEAT_HEIGHT;
+                const currentY = PLAYHEAD_Y - (mouseBeat - currentBeat) * BEAT_HEIGHT;
+                const x = dragStartNote.lane * laneWidth;
+                
+                ctx.fillStyle = LANE_COLORS[dragStartNote.lane];
+                ctx.globalAlpha = 0.4;
+                // 保证只能往上拖（未来时间）
+                if (currentY < startY) {
+                    ctx.fillRect(x + 5, currentY, laneWidth - 10, startY - currentY);
+                }
+                ctx.globalAlpha = 1.0;
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // --- 鼠标交互与编辑 ---
+        function getQuantizedBeat(y) {
+            const currentBeat = timeToBeat(audioPlayer.currentTime * 1000);
+            const clickedBeat = currentBeat + (PLAYHEAD_Y - y) / BEAT_HEIGHT;
+            return Math.round(clickedBeat * SNAP) / SNAP;
+        }
+
+        // 获取考虑了可能被 CSS 缩放过的画布真实映射坐标
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getCanvasPos(e);
+            mouseLane = Math.max(0, Math.min(3, Math.floor(pos.x / (CANVAS_WIDTH / 4))));
+            mouseBeat = getQuantizedBeat(pos.y);
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 && e.button !== 2) return;
+            e.preventDefault();
+            
+            // 在点击的瞬间重新计算一次位置，防止在音乐播放中鼠标不动导致判定滞后
+            const pos = getCanvasPos(e);
+            mouseLane = Math.max(0, Math.min(3, Math.floor(pos.x / (CANVAS_WIDTH / 4))));
+            mouseBeat = getQuantizedBeat(pos.y);
+
+            if (e.button === 2) { // 右键删除
+                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.05));
+                return;
+            }
+
+            if (e.button === 0) { // 左键添加
+                // 避免重复添加
+                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.05));
+                
+                const newNote = { beat: mouseBeat, lane: mouseLane };
+                
+                if (noteTypeSelect.value === 'long') {
+                    isDragging = true;
+                    dragStartNote = newNote;
+                } else {
+                    chartData.notes.push(newNote);
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (isDragging && dragStartNote) {
+                if (mouseBeat > dragStartNote.beat) {
+                    dragStartNote.endBeat = mouseBeat;
+                }
+                chartData.notes.push(dragStartNote);
+                isDragging = false;
+                dragStartNote = null;
+            }
+        });
+
+        // 禁用右键菜单
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // 滚轮控制时间轴滚动或缩放
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            if (e.ctrlKey) {
+                // Ctrl + 滚轮：缩放轨道
+                let newZoom = BEAT_HEIGHT + (e.deltaY > 0 ? -10 : 10);
+                newZoom = Math.max(50, Math.min(600, newZoom)); // 限制范围
+                BEAT_HEIGHT = newZoom;
+                zoomInput.value = newZoom;
+            } else {
+                // 普通滚轮：时间轴滚动 (反转逻辑：向下滚时间后退，向上滚时间前进)
+                const currentBeat = timeToBeat(audioPlayer.currentTime * 1000);
+                const newBeat = currentBeat + (e.deltaY > 0 ? -1/SNAP : 1/SNAP);
+                if (newBeat >= 0) {
+                    audioPlayer.currentTime = beatToTime(newBeat) / 1000;
+                }
+            }
+        });
+
+        // 快捷键
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                if (audioPlayer.paused) audioPlayer.play();
+                else audioPlayer.pause();
+            }
+        });
+
+        // --- UI与文件事件绑定 ---
+        snapSelect.addEventListener('change', e => SNAP = parseInt(e.target.value));
+        zoomInput.addEventListener('change', e => BEAT_HEIGHT = parseInt(e.target.value));
+
+        document.getElementById('audioInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                audioPlayer.src = url;
+            }
+        });
+
+        document.getElementById('chartInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        chartData = JSON.parse(event.target.result);
+                        if(!chartData.bpmList) chartData.bpmList = [{beat: 0, bpm: 120}];
+                        updateTimingPoints();
+                        alert("谱面加载成功");
+                    } catch(err) {
+                        alert("谱面解析失败: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        window.exportChart = function() {
+            // 排序清理数据
+            chartData.bpmList.sort((a, b) => a.beat - b.beat);
+            chartData.notes.sort((a, b) => a.beat - b.beat);
+            
+            const dataStr = JSON.stringify(chartData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'custom_chart.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // 初始化
+        updateTimingPoints();
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>
