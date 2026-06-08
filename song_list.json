@@ -1,15 +1,15 @@
 [
   {
     "id": "1",
-    "title": "饥饿的巨人",
-    "artist": "AI生成",
+    "title": "Test Music 1",
+    "artist": "AGC",
     "audio": "music/music1.mp3",
     "chart": "music/chart1.json"
   },
   {
     "id": "2",
-    "title": "西西弗斯",
-    "artist": "AI生成",
+    "title": "Test Music 2",
+    "artist": "AGC",
     "audio": "music/music2.mp3",
     "chart": "music/chart2.json"
   },

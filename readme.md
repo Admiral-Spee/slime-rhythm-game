@@ -1,3 +1,5 @@
+[English](./README_en.md) | 简体中文
+
 # 节奏史莱姆
 
 一个基于 HTML5 Canvas 和 Web Audio API 开发的轻量级、节拍驱动下落式音乐游戏。本项目自带一个功能完善的 Web 端可视化谱面编辑器。
