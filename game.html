@@ -751,10 +751,18 @@
         loadLocalSettings();
 
         // --- 画面初始化与尺寸自适应 ---
+        let stageWidth = 0;
+        let stageHeight = 0;
+
         function resizeCanvas() {
             const container = document.getElementById('stageContainer');
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            const dpr = window.devicePixelRatio || 1;
+            stageWidth = container.clientWidth;
+            stageHeight = container.clientHeight;
+            
+            canvas.width = stageWidth * dpr;
+            canvas.height = stageHeight * dpr;
+            ctx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -1235,7 +1243,7 @@
 
         function triggerVibrate() {
             if (navigator.vibrate) {
-                navigator.vibrate(50); // 移动端短震20ms
+                navigator.vibrate(50); 
             }
         }
 
@@ -1264,7 +1272,7 @@
 
                     // 判断是否为长按音符
                     if (targetNote.endTimeMs) {
-                        targetNote.hitState = 5; // 标记为正在长按 (Holding)
+                        targetNote.hitState = 5; // 标记为正在长按
                         targetNote.startHitType = hitType;
                         score += (hitType === 'PERFECT' ? 500 : (hitType === 'GREAT' ? 400 : 250)); // 起始时先给一半分
                         triggerJudgeUI('HOLD', 'judge-perfect');
@@ -1338,7 +1346,7 @@
         // --- 特效粒子机制 ---
         function createSparks(lane, color) {
             const x = getLaneBottomX(lane);
-            const y = canvas.height * 0.85; // 判定线高度
+            const y = stageHeight * 0.85; // 判定线高度
             for (let i = 0; i < 30; i++) {
                 hitEffects.push({
                     x: x,
@@ -1355,6 +1363,12 @@
         }
 
         function updateAndDrawEffects() {
+            if (hitEffects.length === 0) return;
+            
+            ctx.save();
+            // 开启屏幕叠加混合模式
+            ctx.globalCompositeOperation = 'screen';
+            
             for (let i = hitEffects.length - 1; i >= 0; i--) {
                 const p = hitEffects[i];
                 p.x += p.vx;
@@ -1365,17 +1379,25 @@
                     hitEffects.splice(i, 1);
                     continue;
                 }
-                ctx.save();
-                ctx.globalCompositeOperation = 'screen';
-                ctx.globalAlpha = Math.max(0, p.life);
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = p.color;
+                
+                const alpha = Math.max(0, p.life);
+                const r = Math.max(0, p.radius * p.life);
+                
+                // 1. 绘制核心实体
+                ctx.globalAlpha = alpha;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius * p.life, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.restore();
+                
+                // 2. 绘制透明度更低、面积更大的外围圆圈来“伪造”光晕效果
+                ctx.globalAlpha = alpha * 0.3;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+                ctx.fill();
             }
+            
+            ctx.restore();
         }
 
         // --- 画面二维/三维透视投射计算 ---
@@ -1384,15 +1406,15 @@
 
         // 获取轨道在底部（判定线）处的中心X坐标
         function getLaneBottomX(laneIdx) {
-            const laneWidth = canvas.width / 4;
+            const laneWidth = stageWidth / 4;
             return laneWidth * laneIdx + laneWidth / 2;
         }
 
         // 3D透视投影函数：根据音符距离判定线的“剩余拍数”计算屏幕(X, Y)坐标
         // remBeats: 剩余多少拍到达判定线。 4表示刚出现在最顶部，0表示正好到达判定线。
         function projectPerspective(laneIdx, remBeats) {
-            const w = canvas.width;
-            const h = canvas.height;
+            const w = stageWidth;
+            const h = stageHeight;
 
             // 建立经典梯形透视。顶端消失点收缩比例，底端完全展开
             const vanishingY = h * 0.1;   // 消失点Y坐标
@@ -1425,8 +1447,8 @@
 
         // 获取轨道边缘用于绘制棋盘格
         function projectPerspectiveEdge(edgeIdx, remBeats) {
-            const w = canvas.width;
-            const h = canvas.height;
+            const w = stageWidth;
+            const h = stageHeight;
             const vanishingY = h * 0.1;
             const judgeY = h * 0.85;
             const progress = Math.max(0, Math.min(1, remBeats / VISIBLE_BEATS));
@@ -1610,8 +1632,8 @@
         function gameLoop() {
             if (!isPlaying) return;
 
-            const w = canvas.width;
-            const h = canvas.height;
+            const w = stageWidth;
+            const h = stageHeight;
             
             // 清屏
             ctx.clearRect(0, 0, w, h);
@@ -1742,12 +1764,14 @@
                 drawSlime(ctx, rx, judgeY, baseNoteRadius, LANE_COLORS[l], true, false, activeKeys[l], currentBeat, l);
             }
 
-            // 3. 遍历、更新、渲染所有音符
-            chartNotes.forEach(note => {
+            // 3. 遍历、更新音符状态，并绘制光轨、收集需要绘制的史莱姆实体
+            let slimesToDraw = [];
+            for (let i = chartNotes.length - 1; i >= 0; i--) {
+                const note = chartNotes[i];
                 // 计算该音符距离判定点还剩多少拍
                 const remBeats = note.beat - currentBeat;
 
-                // 漏击(Miss)自动触发检测：根据绝对时间差异触发
+                // Miss自动触发检测：根据绝对时间差异触发
                 if (currentAudioTimeMs - note.timeMs > JUDGE_WINDOWS.GOOD && note.hitState === 0) {
                     note.hitState = 3; // 标记为Miss
                     combo = 0;         // 连击中断
@@ -1803,30 +1827,31 @@
                     }
                 }
 
-                // 只有处于视野可见拍数范围内，才渲染音符头部史莱姆
+                // 收集音符头部史莱姆实体
                 if (displayStart <= VISIBLE_BEATS && remBeats > -1) {
                     if (note.hitState === 0 || note.hitState === 3) {
-                        const { x, y, sizeFactor } = projectPerspective(note.lane, displayStart);
-                        const dynamicRadius = baseNoteRadius * sizeFactor;
-                        
-                        const isMissed = (note.hitState === 3);
-                        drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[note.lane], false, isMissed, false, currentBeat, note.lane);
+                        slimesToDraw.push({ lane: note.lane, depth: displayStart, isMissed: note.hitState === 3, scale: 1.0 });
                     }
                 }
 
-                // 渲染长按音符尾部的史莱姆（封顶）
+                // 收集长按音符尾部的史莱姆实体（封顶）
                 if (note.endBeat && (note.hitState === 0 || note.hitState === 3 || note.hitState === 5)) {
                     const endRemBeats = note.endBeat - currentBeat;
                     if (displayEnd <= VISIBLE_BEATS && endRemBeats > -1) {
-                        const { x, y, sizeFactor } = projectPerspective(note.lane, displayEnd);
-                        const dynamicRadius = baseNoteRadius * sizeFactor * 0.8;
-                        const isMissed = (note.hitState === 3);
-                        drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[note.lane], false, isMissed, false, currentBeat, note.lane);
+                        slimesToDraw.push({ lane: note.lane, depth: displayEnd, isMissed: note.hitState === 3, scale: 0.8 });
                     }
                 }
+            }
+
+            // 4. 对所有史莱姆实体进行严格的 Z 轴（深度）排序，从远到近绘制，完美解决所有图层穿插问题
+            slimesToDraw.sort((a, b) => b.depth - a.depth);
+            slimesToDraw.forEach(s => {
+                const { x, y, sizeFactor } = projectPerspective(s.lane, s.depth);
+                const dynamicRadius = baseNoteRadius * sizeFactor * s.scale;
+                drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[s.lane], false, s.isMissed, false, currentBeat, s.lane);
             });
 
-            // 4. 更新爆炸粒子效果
+            // 5. 更新爆炸粒子效果
             updateAndDrawEffects();
 
             // 5. 检查歌曲是否结束

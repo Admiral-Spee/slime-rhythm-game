@@ -1,4 +1,9 @@
-[English](./README_en.md) | 简体中文
+<p align="center">
+  <a href="./README.md">简体中文</a> | 
+  <a href="./README_en.md">English</a>
+</p>
+
+---
 
 # 节奏史莱姆
 
