@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>节奏史莱姆 - 谱面编辑器</title>
+    <title data-i18n="title">节奏史莱姆 - 谱面编辑器</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -136,44 +136,51 @@
     <!-- 左侧控制面板 -->
     <div class="sidebar">
         <div class="panel">
-            <div class="panel-title">文件操作</div>
+            <div class="control-row">
+                <span data-i18n="language">语言 / Language:</span>
+                <button id="btnLangToggle" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title" data-i18n="fileOps">文件操作</div>
             <div class="control-row">
                 <label class="file-btn">
-                    导入音乐 (MP3/OGG)
+                    <span data-i18n="importAudio">导入音乐 (MP3/OGG)</span>
                     <input type="file" id="audioInput" accept="audio/*">
                 </label>
             </div>
             <div class="control-row">
                 <label class="file-btn" style="background: #4caf50;">
-                    导入谱面 (JSON)
+                    <span data-i18n="importChart">导入谱面 (JSON)</span>
                     <input type="file" id="chartInput" accept=".json">
                 </label>
-                <button onclick="exportChart()" style="background: #ff9800;">导出谱面</button>
+                <button onclick="exportChart()" style="background: #ff9800;" data-i18n="exportChart">导出谱面</button>
             </div>
         </div>
 
         <div class="panel">
-            <div class="panel-title">编辑设置</div>
+            <div class="panel-title" data-i18n="editSettings">编辑设置</div>
             <div class="control-row">
-                <span>节拍吸附 (Snap):</span>
+                <span data-i18n="beatSnap">节拍吸附 (Snap):</span>
                 <select id="snapSelect">
-                    <option value="1">1/1 (四分音符)</option>
-                    <option value="2">1/2 (八分音符)</option>
-                    <option value="4" selected>1/4 (十六分音符)</option>
+                    <option value="1" data-i18n="snap1">1/1 (四分音符)</option>
+                    <option value="2" data-i18n="snap2">1/2 (八分音符)</option>
+                    <option value="4" selected data-i18n="snap4">1/4 (十六分音符)</option>
                 </select>
             </div>
             <div class="control-row">
-                <span>轨道缩放 (Zoom):</span>
+                <span data-i18n="laneZoom">轨道缩放 (Zoom):</span>
                 <input type="number" id="zoomInput" value="200" min="50" max="600" step="10">
             </div>
             <div class="control-row">
-                <span>输入模式:</span>
+                <span data-i18n="inputMode">输入模式:</span>
                 <select id="noteTypeSelect">
-                    <option value="short">短按 (Click)</option>
-                    <option value="long">长按 (Drag)</option>
+                    <option value="short" data-i18n="modeShort">短按 (Click)</option>
+                    <option value="long" data-i18n="modeLong">长按 (Drag)</option>
                 </select>
             </div>
-            <p style="font-size: 11px; color:#aaa; margin-top:10px;">
+            <p style="font-size: 11px; color:#aaa; margin-top:10px;" data-i18n="hints">
                 * 鼠标左键：添加音符<br>
                 * 鼠标右键：删除音符<br>
                 * 鼠标滚轮：调整时间轴<br>
@@ -182,9 +189,9 @@
         </div>
 
         <div class="panel">
-            <div class="panel-title">变速管理 (BPM Points)</div>
+            <div class="panel-title" data-i18n="bpmManager">变速管理 (BPM Points)</div>
             <div class="control-row">
-                <button onclick="addBPMPoint()">+ 在当前拍添加变速</button>
+                <button onclick="addBPMPoint()" data-i18n="addBpm">+ 在当前拍添加变速</button>
             </div>
             <div class="control-row">
                 <span>BPM:</span>
@@ -200,7 +207,7 @@
     <div class="main-stage">
         <div class="audio-controls">
             <audio id="audioPlayer" controls></audio>
-            <div>播放速度: 
+            <div><span data-i18n="playbackSpeed">播放速度:</span> 
                 <select id="playbackRate" onchange="document.getElementById('audioPlayer').playbackRate = this.value">
                     <option value="1.0" selected>1.0x</option>
                     <option value="0.75">0.75x</option>
@@ -218,6 +225,65 @@
     </div>
 
     <script>
+        // --- 国际化 (i18n) 字典与逻辑 ---
+        const i18n = {
+            zh: {
+                title: "节奏史莱姆 - 谱面编辑器",
+                language: "语言 / Language:",
+                fileOps: "文件操作",
+                importAudio: "导入音乐 (MP3/OGG)",
+                importChart: "导入谱面 (JSON)",
+                exportChart: "导出谱面",
+                editSettings: "编辑设置",
+                beatSnap: "节拍吸附 (Snap):",
+                snap1: "1/1 (四分音符)",
+                snap2: "1/2 (八分音符)",
+                snap4: "1/4 (十六分音符)",
+                laneZoom: "轨道缩放 (Zoom):",
+                inputMode: "输入模式:",
+                modeShort: "短按 (Click)",
+                modeLong: "长按 (Drag)",
+                hints: "* 鼠标左键：添加音符<br>* 鼠标右键：删除音符<br>* 鼠标滚轮：调整时间轴<br>* 空格键：播放/暂停",
+                bpmManager: "变速管理 (BPM Points)",
+                addBpm: "+ 在当前拍添加变速",
+                playbackSpeed: "播放速度:",
+                start: "起始",
+                deleteBtn: "删除",
+                invalidBpm: "无效的BPM值",
+                chartLoaded: "谱面加载成功",
+                chartFailed: "谱面解析失败: "
+            },
+            en: {
+                title: "Slime Rhythm - Chart Editor",
+                language: "Language / 语言:",
+                fileOps: "File Operations",
+                importAudio: "Import Audio (MP3/OGG)",
+                importChart: "Import Chart (JSON)",
+                exportChart: "Export Chart",
+                editSettings: "Editor Settings",
+                beatSnap: "Beat Snap:",
+                snap1: "1/1 (Quarter Note)",
+                snap2: "1/2 (Eighth Note)",
+                snap4: "1/4 (Sixteenth Note)",
+                laneZoom: "Lane Zoom:",
+                inputMode: "Input Mode:",
+                modeShort: "Short (Click)",
+                modeLong: "Long (Drag)",
+                hints: "* Left Click: Add Note<br>* Right Click: Delete Note<br>* Mouse Wheel: Scroll Time<br>* Space: Play/Pause",
+                bpmManager: "BPM Management",
+                addBpm: "+ Add BPM Point at Current Beat",
+                playbackSpeed: "Playback Speed:",
+                start: "Start",
+                deleteBtn: "Delete",
+                invalidBpm: "Invalid BPM value",
+                chartLoaded: "Chart loaded successfully",
+                chartFailed: "Failed to parse chart: "
+            }
+        };
+
+        let currentLang = localStorage.getItem('slime_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+        function t(key) { return i18n[currentLang][key] || key; }
+
         // --- 核心状态与数据 ---
         let chartData = {
             bpmList: [{ beat: 0, bpm: 120 }],
@@ -246,6 +312,22 @@
         let dragStartNote = null;
         let mouseBeat = 0;
         let mouseLane = 0;
+
+        function updateUIi18n() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) el.innerHTML = i18n[currentLang][key];
+            });
+            document.getElementById('btnLangToggle').textContent = currentLang === 'zh' ? '简体中文' : 'English';
+            if (document.title !== t('title')) document.title = t('title');
+            renderBPMList(); // 重新渲染动态生成的 BPM 列表
+        }
+
+        document.getElementById('btnLangToggle').addEventListener('click', () => {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('slime_lang', currentLang);
+            updateUIi18n();
+        });
 
         // --- 预览音效状态 ---
         let audioCtx = null;
@@ -342,7 +424,7 @@
                 div.className = 'bpm-item';
                 div.innerHTML = `
                     <span>Beat: ${tp.beat.toFixed(2)} | ${tp.bpm} BPM</span>
-                    ${index > 0 ? `<button onclick="removeBPMPoint(${index})">删除</button>` : '<span>起始</span>'}
+                ${index > 0 ? `<button onclick="removeBPMPoint(${index})">${t('deleteBtn')}</button>` : `<span>${t('start')}</span>`}
                 `;
                 container.appendChild(div);
             });
@@ -352,7 +434,7 @@
             let currentBeat = timeToBeat(audioPlayer.currentTime * 1000);
             currentBeat = Math.round(currentBeat * SNAP) / SNAP; // 根据当前的 SNAP 设置吸附
             const newBpm = parseFloat(document.getElementById('newBpmInput').value);
-            if (!newBpm || newBpm <= 0) return alert("无效的BPM值");
+            if (!newBpm || newBpm <= 0) return alert(t('invalidBpm'));
             
             // 检查是否已经在该拍附近有节点
             const existingIndex = chartData.bpmList.findIndex(tp => Math.abs(tp.beat - currentBeat) < 0.01);
@@ -632,9 +714,9 @@
                         chartData = JSON.parse(event.target.result);
                         if(!chartData.bpmList) chartData.bpmList = [{beat: 0, bpm: 120}];
                         updateTimingPoints();
-                        alert("谱面加载成功");
+                        alert(t('chartLoaded'));
                     } catch(err) {
-                        alert("谱面解析失败: " + err.message);
+                        alert(t('chartFailed') + err.message);
                     }
                 };
                 reader.readAsText(file);
@@ -658,6 +740,7 @@
         };
 
         // 初始化
+        updateUIi18n();
         updateTimingPoints();
         requestAnimationFrame(render);
     </script>
