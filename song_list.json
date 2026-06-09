@@ -14,7 +14,7 @@
     "id": "2",
     "title": "Test Music 2",
     "artist": "AGC",
-    "audio": "music/music2/music1.mp3",
+    "audio": "music/music2/music2.mp3",
     "levels": [
       { "level": 5, "chart": "music/music2/chart2.json" }
     ]
