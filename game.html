@@ -348,46 +348,51 @@
         
         /* 选歌上半部：详情与难度 */
         .song-detail-top {
-            flex: 0 0 45%;
-            min-height: 220px;
+            flex: 0 1 45%;
+            min-height: 90px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             border-radius: 0;
-            padding: 15px;
+            padding: clamp(5px, 2vh, 15px);
         }
         .detail-cover {
-            width: 120px;
-            height: 120px;
+            width: clamp(50px, 15vh, 120px);
+            height: clamp(50px, 15vh, 120px);
+            aspect-ratio: 1 / 1;
             border-radius: 12px;
             background: #fff;
             object-fit: cover;
-            margin-bottom: 10px;
+            margin-bottom: clamp(5px, 1.5vh, 10px);
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
         }
-        .detail-title { font-size: 20px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; text-align: center; }
-        .detail-artist { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 15px; }
+        .detail-title { font-size: clamp(14px, 3vh, 20px); font-weight: bold; color: var(--text-main); margin-bottom: clamp(2px, 1vh, 5px); text-align: center; }
+        .detail-artist { font-size: clamp(10px, 2vh, 13px); color: var(--text-sub); text-align: center; margin-bottom: clamp(8px, 2vh, 15px); }
         .difficulty-selector {
             display: flex;
             gap: 15px;
             width: 100%;
             max-width: 350px;
             overflow-x: auto;
-            padding: 5px 10px;
+            padding: 10px;
             justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
         }
         .difficulty-selector::-webkit-scrollbar { display: none; }
         .diff-btn {
-            width: 45px;
-            height: 45px;
+            width: clamp(28px, 5vh, 45px);
+            height: clamp(28px, 5vh, 45px);
+            aspect-ratio: 1 / 1;
             border-radius: 50%;
             background: var(--btn-bg);
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 18px;
+            font-size: clamp(12px, 2vh, 18px);
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
