@@ -66,7 +66,7 @@ slime-rhythm-game/
 │   ├── good.mp3       # Good 判定音效
 │   ├── empty.mp3      # 空挥/非判定区敲击音效
 │   └── long.mp3       # 长按期间的循环音效
-└── music/             # 音乐盒谱面文件夹
+└── music/{music id}/  # 音乐盒谱面文件夹
     ├── music1.mp3     # 音乐
     └── chart1.json    # 谱面文件
 ```
@@ -75,11 +75,21 @@ slime-rhythm-game/
 ```jsonc
 [
   {
-    "id": 1,                        // 歌曲的唯一编号或标识符
+    "id": "1",                      // 歌曲的唯一编号或标识符
     "title": "测试曲目 1",           // 歌曲名称（将加粗显示在选歌界面列表中）
     "artist": "作曲家 A",            // 曲师/艺术家名称（显示在标题下方）
     "audio": "music/music1.mp3",    // 音乐音频文件的相对路径（支持绝大多数主流音频格式）
-    "chart": "music/chart1.json"    // 对应的游戏谱面文件（JSON格式）的相对路径
+    "cover": "music/cover.jpg",     // (可选) 歌曲封面的相对路径
+    "levels": [                     // 包含不同难度等级的谱面列表
+      {
+        "level": 1,                 // 难度等级
+        "chart": "music/chart1.json"// 对应的游戏谱面文件（JSON格式）的相对路径
+      },
+      {
+        "level": 2,                 
+        "chart": "music/chart2.json"
+      }
+    ]
   }
 ]
 ```
@@ -175,7 +185,7 @@ slime-rhythm-game/
 │   ├── good.mp3       # Good judgment SFX
 │   ├── empty.mp3      # Empty swing / non-judgment area tap SFX
 │   └── long.mp3       # Looping SFX during hold notes
-└── music/             # Music and chart folder
+└── music/{music id}/  # Music and chart folder
     ├── music1.mp3     # Music file
     └── chart1.json    # Chart file
 ```
@@ -184,11 +194,21 @@ slime-rhythm-game/
 ```jsonc
 [
   {
-    "id": 1,                        // Unique ID or identifier for the song
+    "id": "1",                      // Unique ID or identifier for the song
     "title": "Test Track 1",        // Song title (displayed in bold in the song list)
     "artist": "Composer A",         // Artist/Composer name (displayed below the title)
     "audio": "music/music1.mp3",    // Relative path to the audio file
-    "chart": "music/chart1.json"    // Relative path to the corresponding chart file (JSON format)
+    "cover": "music/cover.jpg",     // (Optional) Relative path to the song cover image
+    "levels": [                     // List of charts for different difficulty levels
+      {
+        "level": 1,                 // Difficulty level
+        "chart": "music/chart1.json"// Relative path to the corresponding chart file (JSON format)
+      },
+      {
+        "level": 2,                 
+        "chart": "music/chart2.json"
+      }
+    ]
   }
 ]
 ```

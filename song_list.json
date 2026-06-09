@@ -4,20 +4,29 @@
     "title": "Test Music 1",
     "artist": "AGC",
     "audio": "music/music1.mp3",
-    "chart": "music/chart1.json"
+    "levels": [
+      { "level": 1, "chart": "music/music1/chart1.json" },
+      { "level": 5, "chart": "music/music1/chart2.json" },
+      { "level": 8, "chart": "music/music1/chart3.json" }
+    ]
   },
   {
     "id": "2",
     "title": "Test Music 2",
     "artist": "AGC",
     "audio": "music/music2.mp3",
-    "chart": "music/chart2.json"
+    "levels": [
+      { "level": 5, "chart": "music/music2/chart2.json" }
+    ]
   },
   {
     "id": "3",
     "title": "ハローセカイ",
     "artist": "DECO*27",
     "audio": "music/music3.mp3",
-    "chart": "music/chart3.json"
+    "cover": "music/music3/cover.jpg",
+    "levels": [
+      { "level": 8, "chart": "music/music3/chart3.json" }
+    ]
   }
 ]

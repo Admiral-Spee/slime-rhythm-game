@@ -32,6 +32,7 @@
             border: 1px solid #257b9e;
             border-radius: 8px;
             padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.75);
         }
         
         .panel-title {
@@ -52,7 +53,7 @@
         }
         
         button, .file-btn {
-            background: linear-gradient(135deg, #00f2ff 0%, #006ac2 100%);
+            background: #006ac2;
             border: none;
             border-radius: 4px;
             color: white;
@@ -61,8 +62,12 @@
             cursor: pointer;
             text-align: center;
             transition: 0.2s;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
         }
-        button:hover, .file-btn:hover { filter: brightness(1.2); }
+        button:hover, .file-btn:hover { 
+            filter: brightness(1.2); 
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+        }
         
         input[type="number"], select {
             background: #020c1a;
@@ -71,6 +76,7 @@
             padding: 4px;
             border-radius: 4px;
             width: 80px;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.75);
         }
         
         /* 隐藏原生文件上传按钮 */
@@ -128,6 +134,7 @@
             border-radius: 5px;
             font-family: monospace;
             pointer-events: none;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.9);
         }
     </style>
 </head>
