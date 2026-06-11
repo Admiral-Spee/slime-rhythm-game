@@ -28,5 +28,15 @@
     "levels": [
       { "level": 8, "chart": "music/music3/chart3.json" }
     ]
+  },
+  {
+    "id": "4",
+    "title": "Tell Your World",
+    "artist": "kz",
+    "audio": "music/music4/music.mp3",
+    "cover": "music/music4/cover.webp",
+    "levels": [
+      { "level": 8, "chart": "music/music4/chart.json" }
+    ]
   }
 ]
