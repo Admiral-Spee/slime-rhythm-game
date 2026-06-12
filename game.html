@@ -860,6 +860,10 @@
                 if (savedImg) {
                     const img = new Image();
                     img.onload = () => { customSlimeImages[i] = img; };
+                img.onerror = () => {
+                    console.warn("无法加载保存的皮肤图片，可能已被移除或路径错误:", savedImg);
+                    localStorage.removeItem('slime_customImg' + i);
+                };
                     img.src = savedImg;
                 }
             }
@@ -2228,7 +2232,7 @@
 
         // 预设皮肤事件绑定
         // 提示: 你可以在这里修改对应的文件名以匹配你 skin/ 文件夹下实际的资源名称
-        const presetSkins = ['skin/preset1.png', 'skin/preset2.png', 'skin/preset3.png', 'skin/preset4.png'];
+        const presetSkins = ['./skin/preset1.webp', './skin/preset2.webp', './skin/preset3.webp', './skin/preset4.webp'];
         for (let i = 0; i < 4; i++) {
             document.getElementById('btnPreset' + (i + 1)).addEventListener('click', () => {
                 const skinUrl = presetSkins[i];
@@ -2238,6 +2242,10 @@
                         customSlimeImages[j] = img;
                         localStorage.setItem('slime_customImg' + j, skinUrl);
                     }
+                };
+                img.onerror = () => {
+                    alert((currentLang === 'zh' ? "预设皮肤加载失败！\n请检查服务器上是否存在该文件以及大小写是否匹配: " : "Preset skin load failed!\nFile not found: ") + skinUrl);
+                    console.error("Failed to load skin image:", skinUrl);
                 };
                 img.src = skinUrl;
             });
