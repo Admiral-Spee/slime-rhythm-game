@@ -606,6 +606,13 @@
                         <input type="range" id="sliderSlimeScale" min="50" max="150" value="100" step="5">
                     </div>
                     <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <span data-i18n="presetSkin">预设音符外观:</span>
+                        <div style="display: flex; gap: 5px; width: 100%;">
+                            <button id="btnPreset1" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset1">预设1</button>
+                            <button id="btnPreset2" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset2">预设2</button>
+                            <button id="btnPreset3" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset3">预设3</button>
+                            <button id="btnPreset4" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset4">预设4</button>
+                        </div>
                         <span data-i18n="customSkin">自定义音符外观:</span>
                         <div style="display: flex; gap: 5px; width: 100%;">
                             <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="orange">橙色</span><input type="file" id="uploadSlime0" accept="image/*" style="display:none;"></label>
@@ -660,6 +667,11 @@
                 purple: "紫色",
                 blue: "蓝色",
                 resetSlimes: "重置为默认史莱姆",
+                presetSkin: "预设音符外观:",
+                preset1: "初音",
+                preset2: "瑞希",
+                preset3: "镜音连",
+                preset4: "预设4",
                 selectSong: "请选择歌曲",
                 loadFailed: "加载失败",
                 decoding: "解码中...",
@@ -693,6 +705,11 @@
                 purple: "Purple",
                 blue: "Blue",
                 resetSlimes: "Reset to Default Skins",
+                presetSkin: "Preset Skins:",
+                preset1: "Miku",
+                preset2: "Mizuki",
+                preset3: "Len",
+                preset4: "Preset 4",
                 selectSong: "Select a song",
                 loadFailed: "Load Failed",
                 decoding: "Decoding...",
@@ -2208,6 +2225,23 @@
                 localStorage.removeItem('slime_customImg' + i);
             }
         });
+
+        // 预设皮肤事件绑定
+        // 提示: 你可以在这里修改对应的文件名以匹配你 skin/ 文件夹下实际的资源名称
+        const presetSkins = ['skin/preset1.png', 'skin/preset2.png', 'skin/preset3.png', 'skin/preset4.png'];
+        for (let i = 0; i < 4; i++) {
+            document.getElementById('btnPreset' + (i + 1)).addEventListener('click', () => {
+                const skinUrl = presetSkins[i];
+                const img = new Image();
+                img.onload = () => {
+                    for (let j = 0; j < 4; j++) {
+                        customSlimeImages[j] = img;
+                        localStorage.setItem('slime_customImg' + j, skinUrl);
+                    }
+                };
+                img.src = skinUrl;
+            });
+        }
     </script>
 </body>
 </html>
