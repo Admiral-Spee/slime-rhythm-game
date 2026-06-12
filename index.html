@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>节奏史莱姆 - 歌曲选择</title>
+    <style>
+         :root {
+            --theme-hue: 0deg;
+            --bg-color: hsl(calc(215deg + var(--theme-hue)), 45%, 12%);
+            --text-main: #fff;
+            --text-sub: hsl(calc(203deg + var(--theme-hue)), 25%, 69%);
+            --container-bg: hsla(calc(216deg + var(--theme-hue)), 71%, 7%, 0.6);
+            --border-main: hsl(calc(197deg + var(--theme-hue)), 62%, 38%);
+            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.3);
+            --border-active: hsl(calc(202deg + var(--theme-hue)), 100%, 60%);
+            --card-bg: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.15);
+            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 45%);
+            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
+            --overlay-bg: hsla(calc(212deg + var(--theme-hue)), 86%, 5%, 0.85);
+            --setting-bg: hsla(calc(217deg + var(--theme-hue)), 66%, 12%, 0.95);
+        }
+
+        body.light-mode {
+            --bg-color: hsl(calc(212deg + var(--theme-hue)), 41%, 93%);
+            --text-main: hsl(calc(210deg + var(--theme-hue)), 39%, 17%);
+            --text-sub: hsl(calc(209deg + var(--theme-hue)), 24%, 38%);
+            --container-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.7);
+            --border-main: hsl(calc(217deg + var(--theme-hue)), 89%, 75%);
+            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.4);
+            --border-active: hsl(calc(207deg + var(--theme-hue)), 100%, 45%);
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
+            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 65%);
+            --overlay-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
+            --setting-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; min-height: 100dvh; transition: background-color 0.3s, color 0.3s;
+        }
+
+        .bg-glow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 30%, hsl(calc(204deg + var(--theme-hue)), 40%, 28%) 0%, var(--bg-color) 70%);
+            transition: background 0.3s; z-index: -2;
+        }
+        body.light-mode .bg-glow { background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%); }
+
+        .stars {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px; opacity: 0.4; z-index: -1;
+        }
+        body.light-mode .stars { opacity: 0.9; filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5)); }
+
+        .menu-container {
+            position: relative; width: 100%; max-width: 500px; height: 90vh; max-height: 850px;
+            display: flex; flex-direction: column; background: var(--container-bg);
+            border: 2px solid var(--border-main); border-radius: 15px; box-shadow: 0 0 30px var(--border-sub); overflow: hidden;
+        }
+
+        .btn { background: var(--btn-bg); border: none; border-radius: 6px; color: white; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 3px rgba(0, 0, 0, 0.45); }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+
+        /* 遮罩与设置界面样式 */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--overlay-bg); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 30px;
+            text-align: center; z-index: 20; transition: opacity 0.3s;
+        }
+        .overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay h2 {
+            font-size: 24px; color: #e9af01; margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+        }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; margin-bottom: 20px; font-size: 14px; color: var(--text-main);
+        }
+        .settings-row input[type="range"] { width: 50%; cursor: pointer; }
+        .shortcut-info {
+            background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px;
+            border: 1px solid var(--border-sub); margin-bottom: 25px; font-size: 13px;
+            color: #b300b3; box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
+        }
+        /* 选歌界面专有样式 */
+        .song-select-container { display: flex; flex-direction: column; width: 100%; flex: 1; overflow: hidden; gap: 15px; }
+        .song-detail-top { flex: 1; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(5px, 2vh, 15px); }
+        .detail-cover { width: clamp(60px, 12vh, 110px); height: clamp(60px, 12vh, 110px); aspect-ratio: 1/1; border-radius: 12px; background: #fff; object-fit: cover; margin-bottom: clamp(4px, 1vh, 8px); box-shadow: 0 0 8px rgba(0,0,0,0.5); flex-shrink: 0; }
+        .detail-title { font-size: clamp(16px, 2.5vh, 22px); font-weight: bold; margin-bottom: 2px; text-align: center; }
+        .detail-artist { font-size: clamp(12px, 1.8vh, 14px); color: var(--text-sub); margin-bottom: clamp(6px, 1.5vh, 12px); }
+        .difficulty-selector { display: flex; gap: 12px; max-width: 350px; overflow-x: auto; padding: 5px 10px; justify-content: center; flex-shrink: 0; margin-bottom: 5px; }
+        .difficulty-selector::-webkit-scrollbar { display: none; }
+        .diff-btn { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); border-radius: 50%; background: transparent; border: 2px solid var(--text-sub); color: var(--text-sub); display: flex; justify-content: center; align-items: center; font-size: clamp(12px, 2vh, 16px); font-weight: bold; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .diff-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .diff-btn.selected { background: var(--btn-bg); border-color: var(--btn-bg); color: white; }
+
+        .song-list-bottom { flex: 1; overflow-y: auto; padding: 10px 0 20px 0; display: flex; flex-direction: column; gap: 10px; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .song-list-bottom::-webkit-scrollbar { display: none; }
+        .song-card { background: var(--card-bg); border: 2px solid var(--border-sub); border-radius: 10px; padding: 10px 15px; margin: 0 25px; display: flex; align-items: center; transition: all 0.2s; scroll-snap-align: center; cursor: pointer; }
+        .song-card.selected { background: var(--border-sub); transform: scale(1.02); box-shadow: 0 0 10px var(--border-active); }
+        .song-card:hover:not(.selected) { background: var(--border-sub); }
+        .song-thumb { width: 40px; height: 40px; border-radius: 8px; background: #fff; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
+        .song-info { flex: 1; overflow: hidden; }
+        .song-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-artist { font-size: 12px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-diffs { display: flex; gap: 5px; justify-content: flex-end; }
+        .diff-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--btn-bg); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            .menu-container { max-width: 100%; height: 100vh; height: 100dvh; max-height: none; border: none; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="stars"></div>
+
+    <div class="menu-container">
+        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-main); background: var(--card-bg); flex-shrink: 0;">
+            <h2 style="color: var(--text-main); font-style: italic; margin: 0; font-size: 20px;"></h2>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnOffsetTest" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="offsetTest">校准测试</button>
+                <button id="btnAutoPlay" class="btn" style="background: #555; padding: 6px 12px; font-size: 13px;" data-i18n="autoOff">自动: 关</button>
+                <button id="btnOpenSettings" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="settings">⚙️</button>
+            </div>
+        </div>
+
+        <div class="song-select-container">
+            <div class="song-detail-top" id="songDetailTop" style="display: none;">
+                <img id="detailCover" class="detail-cover" src="" alt="Cover">
+                <div id="detailTitle" class="detail-title">Song Title</div>
+                <div id="detailArtist" class="detail-artist">Artist</div>
+                <div id="difficultySelector" class="difficulty-selector"></div>
+                <button id="btnStartSelected" class="btn" style="padding: 8px 35px; font-size: 15px; margin-top: 5px; display: none;" data-i18n="startGame">开始游戏</button>
+            </div>
+            
+            <div class="song-list-bottom" id="songList">
+                <div style="color: var(--text-sub); text-align: center; padding: 20px;" data-i18n="loadingSongs">正在加载歌单配置...</div>
+            </div>
+        </div>
+        
+        <!-- 设置界面遮罩层 -->
+        <div id="settingsOverlay" class="overlay hidden">
+            <h2 data-i18n="gameSettings">游戏设置</h2>
+            <div style="width: 100%; max-width: 350px; text-align: left; background: var(--setting-bg); padding: 25px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 20px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 60vh;">
+                <div class="settings-row">
+                    <span data-i18n="language">语言 / Language:</span>
+                    <button id="btnLangToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
+                </div>
+                <div class="settings-row">
+                    <span data-i18n="lightMode">明亮模式:</span>
+                    <input type="checkbox" id="chkLightMode" style="width: 20px; height: 20px; cursor: pointer;">
+                </div>
+                <div class="settings-row">
+                    <span data-i18n="hueAdjust">主色调调整:</span>
+                    <input type="range" id="sliderHue" min="0" max="360" value="0">
+                </div>
+                <div class="settings-row">
+                    <span><span data-i18n="musicVol">音乐音量</span> (<span id="valMusicVol">50</span>%):</span>
+                    <input type="range" id="sliderMusicVol" min="0" max="100" value="50">
+                </div>
+                <div class="settings-row">
+                    <span><span data-i18n="sfxVol">音效音量</span> (<span id="valSfxVol">50</span>%):</span>
+                    <input type="range" id="sliderSfxVol" min="0" max="100" value="50">
+                </div>
+                <div class="settings-row">
+                    <span><span data-i18n="noteScale">图案大小缩放</span> (<span id="valSlimeScale">100</span>%):</span>
+                    <input type="range" id="sliderSlimeScale" min="50" max="150" value="100" step="5">
+                </div>
+                <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                    <span data-i18n="presetSkin">预设音符外观:</span>
+                    <div style="display: flex; gap: 5px; width: 100%;">
+                        <button id="btnPreset1" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset1">预设1</button>
+                        <button id="btnPreset2" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset2">预设2</button>
+                        <button id="btnPreset3" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset3">预设3</button>
+                        <button id="btnPreset4" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset4">预设4</button>
+                    </div>
+                    <span data-i18n="customSkin">自定义音符外观:</span>
+                    <div style="display: flex; gap: 5px; width: 100%;">
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="orange">橙色</span><input type="file" id="uploadSlime0" accept="image/*" style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="green">绿色</span><input type="file" id="uploadSlime1" accept="image/*" style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="purple">紫色</span><input type="file" id="uploadSlime2" accept="image/*" style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="blue">蓝色</span><input type="file" id="uploadSlime3" accept="image/*" style="display:none;"></label>
+                    </div>
+                    <button id="btnResetSlimes" class="btn" style="width: 100%; padding: 6px; font-size: 12px; background: #666;" data-i18n="resetSlimes">重置为默认史莱姆</button>
+                </div>
+                <div class="shortcut-info" data-i18n="shortcutInfo" style="margin-bottom: 0; margin-top: 15px; text-align: center;">
+                    手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。
+                </div>
+            </div>
+            <button id="btnSettingsBack" class="btn" style="padding: 10px 30px; font-size: 16px;" data-i18n="closeSettings">关闭设置</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 国际化 ---
+        const i18n = {
+            zh: { 
+                loadingSongs: "正在加载歌单配置...", 
+                loadFailed: "加载失败",
+                offsetTest: "校准测试",
+                startGame: "开始游戏",
+                autoOff: "自动: 关", 
+                autoOn: "自动: 开", 
+                settings: "⚙️",
+                gameSettings: "游戏设置", 
+                language: "语言 / Language:", 
+                lightMode: "明亮模式:",
+                hueAdjust: "主色调调整:", 
+                musicVol: "音乐音量", 
+                sfxVol: "音效音量",
+                noteScale: "图案大小缩放", 
+                customSkin: "自定义音符外观:", 
+                orange: "橙色", 
+                green: "绿色",
+                purple: "紫色", 
+                blue: "蓝色", 
+                resetSlimes: "重置为默认史莱姆",
+                presetSkin: "预设音符外观:", 
+                preset1: "初音", 
+                preset2: "瑞希",
+                preset3: "镜音连", 
+                preset4: "预设4", 
+                closeSettings: "关闭设置",
+                shortcutInfo: "手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。"
+            },
+            en: { 
+                loadingSongs: "Loading songs...", 
+                loadFailed: "Load Failed",
+                offsetTest: "Offset Test",
+                startGame: "Start Game",
+                autoOff: "Auto: OFF", 
+                autoOn: "Auto: ON", 
+                settings: "⚙️",
+                gameSettings: "Game Settings", 
+                language: "Language / 语言:", 
+                lightMode: "Light Mode:",
+                hueAdjust: "Hue Adjust:", 
+                musicVol: "Music Vol", 
+                sfxVol: "SFX Vol",
+                noteScale: "Note Scale", 
+                customSkin: "Custom Note Skins:", 
+                orange: "Orange", 
+                green: "Green",
+                purple: "Purple", 
+                blue: "Blue", 
+                resetSlimes: "Reset to Default Skins",
+                presetSkin: "Preset Skins:", 
+                preset1: "Miku", 
+                preset2: "Mizuki",
+                preset3: "Len", 
+                preset4: "Preset 4", 
+                closeSettings: "Close Settings",
+                shortcutInfo: "Tap the bottom slimes to play on Mobile;<br>Use S, D, J, K keys to play on PC."
+            }
+        };
+        let currentLang = localStorage.getItem('slime_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+        function t(key) { return i18n[currentLang][key] || key; }
+        
+        let isAutoPlay = localStorage.getItem('slime_autoPlay') === 'true';
+        function updateAutoPlayBtn() {
+            const btn = document.getElementById('btnAutoPlay');
+            if (isAutoPlay) {
+                btn.textContent = t('autoOn'); btn.style.background = "var(--btn-hover)";
+            } else {
+                btn.textContent = t('autoOff'); btn.style.background = "#555";
+            }
+        }
+
+        function updateUIi18n() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.innerHTML = i18n[currentLang][el.getAttribute('data-i18n')] || el.innerHTML;
+            });
+            const langBtn = document.getElementById('btnLangToggle');
+            if(langBtn) langBtn.textContent = currentLang === 'zh' ? '简体中文' : 'English';
+            updateAutoPlayBtn();
+        }
+        updateUIi18n();
+
+        // --- 主题应用 ---
+        let themeHueOffset = 0;
+        let isLightMode = false;
+        function loadLocalSettings() {
+            if (localStorage.getItem('slime_lightMode') === 'true') {
+                isLightMode = true; document.body.classList.add('light-mode');
+                document.getElementById('chkLightMode').checked = true;
+            }
+            const savedHue = localStorage.getItem('slime_hue');
+            if (savedHue !== null) {
+                themeHueOffset = parseInt(savedHue);
+                document.documentElement.style.setProperty('--theme-hue', savedHue + 'deg');
+                document.getElementById('sliderHue').value = savedHue;
+            }
+            ['musicVol', 'sfxVol', 'scale'].forEach(key => {
+                const val = localStorage.getItem('slime_' + key);
+                if (val !== null) {
+                    const map = { musicVol: 'sliderMusicVol', sfxVol: 'sliderSfxVol', scale: 'sliderSlimeScale' };
+                    const textMap = { musicVol: 'valMusicVol', sfxVol: 'valSfxVol', scale: 'valSlimeScale' };
+                    document.getElementById(map[key]).value = val;
+                    document.getElementById(textMap[key]).textContent = val;
+                }
+            });
+            updateAutoPlayBtn();
+        }
+        loadLocalSettings();
+
+        // --- 设置事件绑定 ---
+        document.getElementById('btnLangToggle').addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('slime_lang', currentLang); updateUIi18n(); });
+        document.getElementById('btnOpenSettings').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('hidden'));
+        document.getElementById('btnSettingsBack').addEventListener('click', () => document.getElementById('settingsOverlay').classList.add('hidden'));
+        document.getElementById('btnAutoPlay').addEventListener('click', () => { isAutoPlay = !isAutoPlay; localStorage.setItem('slime_autoPlay', isAutoPlay); updateAutoPlayBtn(); });
+        document.getElementById('btnOffsetTest').addEventListener('click', () => window.location.href = 'offset_test.html');
+        document.getElementById('chkLightMode').addEventListener('change', (e) => { isLightMode = e.target.checked; document.body.classList.toggle('light-mode', isLightMode); localStorage.setItem('slime_lightMode', isLightMode); });
+        document.getElementById('sliderHue').addEventListener('input', (e) => { document.documentElement.style.setProperty('--theme-hue', e.target.value + 'deg'); localStorage.setItem('slime_hue', e.target.value); });
+        ['musicVol', 'sfxVol', 'scale'].forEach(key => {
+            const map = { musicVol: 'sliderMusicVol', sfxVol: 'sliderSfxVol', scale: 'sliderSlimeScale' };
+            const textMap = { musicVol: 'valMusicVol', sfxVol: 'valSfxVol', scale: 'valSlimeScale' };
+            document.getElementById(map[key]).addEventListener('input', (e) => { document.getElementById(textMap[key]).textContent = e.target.value; localStorage.setItem('slime_' + key, e.target.value); });
+        });
+        for (let i = 0; i < 4; i++) {
+            document.getElementById('uploadSlime' + i).addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) { const reader = new FileReader(); reader.onload = (event) => localStorage.setItem('slime_customImg' + i, event.target.result); reader.readAsDataURL(file); }
+            });
+            document.getElementById('btnPreset' + (i + 1)).addEventListener('click', () => {
+                const presetSkins = ['./skin/preset1.webp', './skin/preset2.webp', './skin/preset3.webp', './skin/preset4.webp'];
+                for (let j = 0; j < 4; j++) localStorage.setItem('slime_customImg' + j, presetSkins[i]);
+                alert(currentLang === 'zh' ? "已应用预设皮肤" : "Preset skin applied");
+            });
+        }
+        document.getElementById('btnResetSlimes').addEventListener('click', () => { for (let i = 0; i < 4; i++) localStorage.removeItem('slime_customImg' + i); alert(currentLang === 'zh' ? "已重置自定义皮肤" : "Custom skins reset"); });
+
+        // --- 选歌与跳转核心逻辑 ---
+        function normalizeSongs(songs) {
+            return songs.map(s => {
+                if (!s.levels) s.levels = [{ level: '?', chart: s.chart }];
+                return s;
+            });
+        }
+
+        let allSongsData = [];
+        const DEFAULT_COVER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        let scrollDebounceTimer;
+        let selectedIndex = -1;
+        let isScrollingProgrammatically = false;
+        let currentSelectedSong = null;
+        let currentSelectedLevel = null;
+
+        async function fetchSongList() {
+            try {
+                const res = await fetch('song_list.json');
+                if (!res.ok) throw new Error("无法加载 song_list.json");
+                const songs = await res.json();
+                renderSongList(songs);
+            } catch (err) {
+                console.error("加载资源失败:", err);
+                document.getElementById('songList').innerHTML = `<div style="color: #ff4444; font-size: 14px; text-align: center; padding: 20px;">${t('loadFailed')}: ${err.message}</div>`;
+            }
+        }
+
+        function renderSongList(songs) {
+            allSongsData = normalizeSongs(songs);
+            const listContainer = document.getElementById('songList');
+            listContainer.innerHTML = '';
+            selectedIndex = -1;
+            
+            if (allSongsData.length === 0) return;
+            const multiplyFactor = Math.max(5, Math.ceil(15 / allSongsData.length)); 
+            
+            for (let i = 0; i < multiplyFactor; i++) {
+                allSongsData.forEach((song, originalIdx) => {
+                    const card = document.createElement('div');
+                    card.className = 'song-card';
+                    card.dataset.index = originalIdx;
+                    
+                    const coverSrc = song.cover || DEFAULT_COVER;
+                    const diffHtml = song.levels.map(l => `<div class="diff-badge">${l.level}</div>`).join('');
+                    
+                    card.innerHTML = `
+                        <img class="song-thumb" src="${coverSrc}" onerror="this.src='${DEFAULT_COVER}'">
+                        <div class="song-info">
+                            <div class="song-title">${song.title}</div>
+                            <div class="song-artist">${song.artist}</div>
+                        </div>
+                        <div class="song-diffs">${diffHtml}</div>
+                    `;
+                    
+                    card.onclick = function() {
+                        if (isScrollingProgrammatically) return;
+                        isScrollingProgrammatically = true;
+                        selectedIndex = originalIdx;
+                        selectSongForDetail(song, this);
+                        
+                        listContainer.style.scrollSnapType = 'none';
+                        this.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        
+                        setTimeout(() => {
+                            listContainer.style.scrollSnapType = 'y mandatory';
+                            isScrollingProgrammatically = false;
+                            handleSongScroll({ target: listContainer }, true);
+                        }, 400); 
+                    };
+                    listContainer.appendChild(card);
+                });
+            }
+            
+            listContainer.removeEventListener('scroll', handleSongScroll);
+            listContainer.addEventListener('scroll', handleSongScroll);
+
+            // 初始化定位
+            setTimeout(() => {
+                const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
+                const targetCard = listContainer.children[middleGroupStartIndex];
+                if (targetCard) {
+                    isScrollingProgrammatically = true;
+                    listContainer.style.scrollSnapType = 'none';
+                    targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
+                    setTimeout(() => {
+                        listContainer.style.scrollSnapType = 'y mandatory';
+                        isScrollingProgrammatically = false;
+                        selectedIndex = 0;
+                        selectSongForDetail(allSongsData[0], targetCard);
+                    }, 50);
+                }
+            }, 50);
+        }
+
+        function handleSongScroll(e, force = false) {
+            if (isScrollingProgrammatically && !force) return;
+            const container = e.target || document.getElementById('songList');
+            
+            clearTimeout(scrollDebounceTimer);
+            scrollDebounceTimer = setTimeout(() => {
+                const containerCenter = container.getBoundingClientRect().top + container.offsetHeight / 2;
+                let closestCard = null;
+                let minDistance = Infinity;
+
+                Array.from(container.children).forEach(card => {
+                    const cardCenter = card.getBoundingClientRect().top + card.offsetHeight / 2;
+                    const distance = Math.abs(containerCenter - cardCenter);
+                    if (distance < minDistance) { minDistance = distance; closestCard = card; }
+                });
+
+                if (!closestCard) return;
+                const originalIdx = parseInt(closestCard.dataset.index);
+                const totalElements = container.children.length;
+                const currentItemIdx = Array.from(container.children).indexOf(closestCard);
+                
+                // 无缝跳转 (Warp) 处理
+                if (currentItemIdx < allSongsData.length || currentItemIdx >= totalElements - allSongsData.length) {
+                    isScrollingProgrammatically = true;
+                    const multiplyFactor = totalElements / allSongsData.length;
+                    const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
+                    const targetCard = container.children[middleGroupStartIndex + originalIdx];
+                    
+                    container.style.scrollSnapType = 'none';
+                    targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
+                    
+                    setTimeout(() => {
+                        container.style.scrollSnapType = 'y mandatory';
+                        isScrollingProgrammatically = false;
+                        if (originalIdx !== selectedIndex) {
+                            selectedIndex = originalIdx;
+                            selectSongForDetail(allSongsData[originalIdx], targetCard);
+                        } else {
+                            document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
+                            targetCard.classList.add('selected');
+                        }
+                    }, 50);
+                } else {
+                    if (originalIdx !== selectedIndex) {
+                        selectedIndex = originalIdx;
+                        selectSongForDetail(allSongsData[originalIdx], closestCard);
+                    } else {
+                        document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
+                        closestCard.classList.add('selected');
+                    }
+                }
+            }, 150);
+        }
+
+        function selectSongForDetail(song, centerCardElement) {
+            document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
+            if (centerCardElement) centerCardElement.classList.add('selected');
+            
+            document.getElementById('songDetailTop').style.display = 'flex';
+            document.getElementById('detailCover').src = song.cover || DEFAULT_COVER;
+            document.getElementById('detailTitle').textContent = song.title;
+            document.getElementById('detailArtist').textContent = song.artist;
+            document.getElementById('btnStartSelected').style.display = 'block';
+            
+            const diffSelector = document.getElementById('difficultySelector');
+            diffSelector.innerHTML = '';
+            
+            song.levels.forEach((levelInfo, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'diff-btn';
+                btn.textContent = levelInfo.level;
+                if (idx === 0) {
+                    btn.classList.add('selected');
+                    currentSelectedSong = song;
+                    currentSelectedLevel = levelInfo;
+                }
+                btn.onclick = () => {
+                    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentSelectedLevel = levelInfo;
+                };
+                diffSelector.appendChild(btn);
+            });
+        }
+
+        document.getElementById('btnStartSelected').addEventListener('click', () => {
+            if (currentSelectedSong && currentSelectedLevel) {
+                const audioParam = encodeURIComponent(currentSelectedSong.audio);
+                const chartParam = encodeURIComponent(currentSelectedLevel.chart);
+                window.location.href = `game.html?audio=${audioParam}&chart=${chartParam}`;
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', fetchSongList);
+    </script>
+</body>
+</html>

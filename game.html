@@ -336,129 +336,6 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
         }
 
-        /* 选歌界面样式 */
-        .song-select-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            gap: 15px;
-            max-width: 500px;
-        }
-        
-        /* 选歌上半部：详情与难度 */
-        .song-detail-top {
-            flex: 0 1 45%;
-            min-height: 90px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0;
-            padding: clamp(5px, 2vh, 15px);
-        }
-        .detail-cover {
-            width: clamp(50px, 15vh, 120px);
-            height: clamp(50px, 15vh, 120px);
-            aspect-ratio: 1 / 1;
-            border-radius: 12px;
-            background: #fff;
-            object-fit: cover;
-            margin-bottom: clamp(5px, 1.5vh, 10px);
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
-            flex-shrink: 0;
-        }
-        .detail-title { font-size: clamp(14px, 3vh, 20px); font-weight: bold; color: var(--text-main); margin-bottom: clamp(2px, 1vh, 5px); text-align: center; }
-        .detail-artist { font-size: clamp(10px, 2vh, 13px); color: var(--text-sub); text-align: center; margin-bottom: clamp(8px, 2vh, 15px); }
-        .difficulty-selector {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 350px;
-            overflow-x: auto;
-            padding: 10px;
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .difficulty-selector::-webkit-scrollbar { display: none; }
-        .diff-btn {
-            width: clamp(28px, 5vh, 45px);
-            height: clamp(28px, 5vh, 45px);
-            aspect-ratio: 1 / 1;
-            border-radius: 50%;
-            background: var(--btn-bg);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(12px, 2vh, 18px);
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 0 3px rgba(0, 0, 0, 0.45);
-            flex-shrink: 0;
-        }
-        .diff-btn:hover {
-            background: var(--btn-hover);
-            transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
-        }
-
-        /* 选歌下半部：滚动列表 */
-        .song-list-bottom {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
-        }
-        .song-list-bottom::-webkit-scrollbar { display: none; }
-
-        .song-card {
-            background: var(--card-bg);
-            border: 2px solid var(--border-sub);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 0 10px;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-            box-shadow: 0 0 3px rgba(0, 0, 0, 0.45);
-            scroll-snap-align: center;
-            cursor: pointer;
-        }
-        .song-card.selected {
-            background: var(--border-sub);
-            transform: scale(1.02);
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.45), 0 0 10px var(--border-active);
-        }
-        .song-card:hover:not(.selected) { background: var(--border-sub); }
-        
-        .song-thumb { width: 50px; height: 50px; border-radius: 8px; background: #fff; object-fit: cover; flex-shrink: 0; margin-right: 15px; }
-        .song-info { flex: 1; text-align: left; overflow: hidden; }
-        .song-title { font-size: 16px; font-weight: bold; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-artist { font-size: 12px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .song-diffs { display: flex; gap: 5px; max-width: 33.33%; flex-wrap: wrap; justify-content: flex-end; }
-        .diff-badge {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--btn-bg);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 11px;
-            font-weight: bold;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        }
-
         /* 结算界面统计样式 */
         .result-stats {
             background: var(--card-bg);
@@ -487,21 +364,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* 设置界面样式 */
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: var(--text-main);
-        }
-        .settings-row input[type="range"] {
-            width: 50%;
-            cursor: pointer;
-        }
-
         /* 移动端全屏适配 */
         @media (max-width: 600px) {
             .game-container {
@@ -525,10 +387,8 @@
         <!-- 顶部控制与自定义上传配置面板 -->
         <div class="config-panel">
             <div class="config-row" style="justify-content: center; gap: 15px;">
-                    <button id="btnBackToMenu" class="btn" style="display: none;" data-i18n="backToMenu">返回选歌</button>
+                <button id="btnBackToMenu" class="btn" data-i18n="backToMenu">返回选歌</button>
                 <button id="btnPlayPause" class="btn" disabled data-i18n="waiting">等待加载...</button>
-                <button id="btnAutoPlay" class="btn" style="background: #555;" data-i18n="autoOff">自动: 关</button>
-                    <button id="btnOpenSettings" class="btn" data-i18n="settings">⚙️</button>
             </div>
 
             <!-- 结算界面遮罩层 -->
@@ -561,72 +421,7 @@
 
             <!-- 开始/就绪遮罩层 -->
             <div id="startOverlay" class="overlay" style="padding: 20px;">
-                <div class="song-select-container">
-                    <div class="song-detail-top" id="songDetailTop" style="display: none;">
-                        <img id="detailCover" class="detail-cover" src="" alt="Cover">
-                        <div id="detailTitle" class="detail-title">Song Title</div>
-                        <div id="detailArtist" class="detail-artist">Artist</div>
-                        <div id="difficultySelector" class="difficulty-selector">
-                            <!-- 难度按钮动态生成区 -->
-                        </div>
-                    </div>
-                    
-                    <div class="song-list-bottom" id="songList">
-                        <div style="color: var(--text-sub);" data-i18n="loadingSongs">正在加载歌单和基础资源...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 设置界面遮罩层 -->
-            <div id="settingsOverlay" class="overlay hidden">
-                <h2 data-i18n="gameSettings">游戏设置</h2>
-                <div style="width: 100%; max-width: 350px; text-align: left; background: var(--setting-bg); padding: 25px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 20px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);">
-                    <div class="settings-row">
-                        <span data-i18n="language">语言 / Language:</span>
-                        <button id="btnLangToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
-                    </div>
-                    <div class="settings-row">
-                        <span data-i18n="lightMode">明亮模式:</span>
-                        <input type="checkbox" id="chkLightMode" style="width: 20px; height: 20px; cursor: pointer;">
-                    </div>
-                    <div class="settings-row">
-                        <span data-i18n="hueAdjust">主色调调整:</span>
-                        <input type="range" id="sliderHue" min="0" max="360" value="0">
-                    </div>
-                    <div class="settings-row">
-                        <span><span data-i18n="musicVol">音乐音量</span> (<span id="valMusicVol">50</span>%):</span>
-                        <input type="range" id="sliderMusicVol" min="0" max="100" value="50">
-                    </div>
-                    <div class="settings-row">
-                        <span><span data-i18n="sfxVol">音效音量</span> (<span id="valSfxVol">50</span>%):</span>
-                        <input type="range" id="sliderSfxVol" min="0" max="100" value="50">
-                    </div>
-                    <div class="settings-row">
-                        <span><span data-i18n="noteScale">图案大小缩放</span> (<span id="valSlimeScale">100</span>%):</span>
-                        <input type="range" id="sliderSlimeScale" min="50" max="150" value="100" step="5">
-                    </div>
-                    <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                        <span data-i18n="presetSkin">预设音符外观:</span>
-                        <div style="display: flex; gap: 5px; width: 100%;">
-                            <button id="btnPreset1" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset1">预设1</button>
-                            <button id="btnPreset2" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset2">预设2</button>
-                            <button id="btnPreset3" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset3">预设3</button>
-                            <button id="btnPreset4" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset4">预设4</button>
-                        </div>
-                        <span data-i18n="customSkin">自定义音符外观:</span>
-                        <div style="display: flex; gap: 5px; width: 100%;">
-                            <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="orange">橙色</span><input type="file" id="uploadSlime0" accept="image/*" style="display:none;"></label>
-                            <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="green">绿色</span><input type="file" id="uploadSlime1" accept="image/*" style="display:none;"></label>
-                            <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="purple">紫色</span><input type="file" id="uploadSlime2" accept="image/*" style="display:none;"></label>
-                            <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="blue">蓝色</span><input type="file" id="uploadSlime3" accept="image/*" style="display:none;"></label>
-                        </div>
-                        <button id="btnResetSlimes" class="btn" style="width: 100%; padding: 6px; font-size: 12px; background: #666;" data-i18n="resetSlimes">重置为默认史莱姆</button>
-                    </div>
-                    <div class="shortcut-info" data-i18n="shortcutInfo" style="margin-bottom: 0; margin-top: 15px; text-align: center;">
-                        手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。
-                    </div>
-                </div>
-                <button id="btnSettingsBack" class="btn" style="padding: 10px 30px; font-size: 16px;" data-i18n="closeSettings">关闭设置</button>
+                <h2 id="readyTitle" data-i18n="waiting">等待加载...</h2>
             </div>
         </div>
 
@@ -645,78 +440,32 @@
             zh: {
                 backToMenu: "返回选歌",
                 waiting: "等待加载...",
-                autoOff: "自动: 关",
-                autoOn: "自动: 开",
                 gameOver: "游戏结束",
                 score: "得分: ",
                 maxCombo: "最大连击: ",
-                settings: "⚙️",
                 songSelect: "选歌界面",
                 loadingSongs: "正在加载歌单和基础资源...",
-                shortcutInfo: "手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。",
-                gameSettings: "游戏设置",
                 language: "语言 / Language:",
-                lightMode: "明亮模式:",
-                hueAdjust: "主色调调整:",
-                musicVol: "音乐音量",
-                sfxVol: "音效音量",
-                noteScale: "图案大小缩放",
-                customSkin: "自定义音符外观:",
-                orange: "橙色",
-                green: "绿色",
-                purple: "紫色",
-                blue: "蓝色",
-                resetSlimes: "重置为默认史莱姆",
-                presetSkin: "预设音符外观:",
-                preset1: "初音",
-                preset2: "瑞希",
-                preset3: "镜音连",
-                preset4: "预设4",
                 selectSong: "请选择歌曲",
                 loadFailed: "加载失败",
                 decoding: "解码中...",
                 resume: "继续游戏",
                 pause: "暂停游戏",
-                play: "PLAY",
-                closeSettings: "关闭设置"
             },
             en: {
                 backToMenu: "Back to Menu",
                 waiting: "Loading...",
-                autoOff: "Auto: OFF",
-                autoOn: "Auto: ON",
                 gameOver: "Game Over",
                 score: "Score: ",
                 maxCombo: "Max Combo: ",
-                settings: "⚙️",
                 songSelect: "Select Song",
                 loadingSongs: "Loading songs and resources...",
-                shortcutInfo: "Tap the bottom slimes to play on Mobile;<br>Use S, D, J, K keys to play on PC.",
-                gameSettings: "Game Settings",
                 language: "Language / 语言:",
-                lightMode: "Light Mode:",
-                hueAdjust: "Hue Adjust:",
-                musicVol: "Music Vol",
-                sfxVol: "SFX Vol",
-                noteScale: "Note Scale",
-                customSkin: "Custom Note Skins:",
-                orange: "Orange",
-                green: "Green",
-                purple: "Purple",
-                blue: "Blue",
-                resetSlimes: "Reset to Default Skins",
-                presetSkin: "Preset Skins:",
-                preset1: "Miku",
-                preset2: "Mizuki",
-                preset3: "Len",
-                preset4: "Preset 4",
                 selectSong: "Select a song",
                 loadFailed: "Load Failed",
                 decoding: "Decoding...",
                 resume: "Resume",
                 pause: "Pause",
-                play: "PLAY",
-                closeSettings: "Close Settings"
             }
         };
 
@@ -732,25 +481,16 @@
             document.getElementById('btnLangToggle').textContent = currentLang === 'zh' ? '简体中文' : 'English';
             
             // 更新动态状态文本
-            const isMenu = !document.getElementById('startOverlay').classList.contains('hidden');
-            if (isMenu) {
-                if (chartNotes.length === 0) btnPlayPause.textContent = t('selectSong');
-            } else if (isPlaying) {
+            if (isPlaying) {
                 btnPlayPause.textContent = t('pause');
             } else if (isSongEnding) {
                 btnPlayPause.textContent = t('gameOver');
             } else {
                 btnPlayPause.textContent = t('resume');
             }
-            btnAutoPlay.textContent = isAutoPlay ? t('autoOn') : t('autoOff');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btnLangToggle').addEventListener('click', () => {
-                currentLang = currentLang === 'zh' ? 'en' : 'zh';
-                localStorage.setItem('slime_lang', currentLang);
-                updateUIi18n();
-            });
             updateUIi18n();
         });
 
@@ -789,6 +529,7 @@
         let startTime = 0;   // 音乐开始播放的绝对时间戳 (Context时间)
         let isPlaying = false;
         let pauseOffset = 0; // 暂停时的音乐进度位移 (秒)
+        let audioOffsetMs = 0; // 音频延迟校准偏移 (毫秒)
         
         // 实时游戏状态
         let score = 0;
@@ -802,7 +543,7 @@
         let songEndingTimeout = null;
         let holdAudioSources = [null, null, null, null]; // 存储长按音效循环源
         
-        let isAutoPlay = false;
+        let isAutoPlay = localStorage.getItem('slime_autoPlay') === 'true';
         let autoPlayKeyTimers = [0, 0, 0, 0]; // 自动打歌的按键视觉保持时长控制
 
         // 新增：全局音量控制节点
@@ -825,34 +566,24 @@
             // 亮暗模式
             const savedLightMode = localStorage.getItem('slime_lightMode');
             if (savedLightMode === 'true') {
-                document.getElementById('chkLightMode').checked = true;
                 isLightMode = true;
                 document.body.classList.add('light-mode');
             }
             // 主色调
             const savedHue = localStorage.getItem('slime_hue');
             if (savedHue !== null) {
-                document.getElementById('sliderHue').value = savedHue;
                 themeHueOffset = parseInt(savedHue);
                 document.documentElement.style.setProperty('--theme-hue', savedHue + 'deg');
-            }
-            // 音量设置
-            const savedMusicVol = localStorage.getItem('slime_musicVol');
-            if (savedMusicVol !== null) {
-                document.getElementById('sliderMusicVol').value = savedMusicVol;
-                document.getElementById('valMusicVol').textContent = savedMusicVol;
-            }
-            const savedSfxVol = localStorage.getItem('slime_sfxVol');
-            if (savedSfxVol !== null) {
-                document.getElementById('sliderSfxVol').value = savedSfxVol;
-                document.getElementById('valSfxVol').textContent = savedSfxVol;
             }
             // 图案缩放比例
             const savedSlimeScale = localStorage.getItem('slime_scale');
             if (savedSlimeScale !== null) {
-                document.getElementById('sliderSlimeScale').value = savedSlimeScale;
-                document.getElementById('valSlimeScale').textContent = savedSlimeScale;
                 slimeScaleFactor = parseInt(savedSlimeScale) / 100;
+            }
+            // 音频偏移校准
+            const savedAudioOffset = localStorage.getItem('slime_audioOffset');
+            if (savedAudioOffset !== null) {
+                audioOffsetMs = parseInt(savedAudioOffset);
             }
             // 自定义图片
             for (let i = 0; i < 4; i++) {
@@ -895,8 +626,11 @@
                 musicGainNode = audioContext.createGain();
                 sfxGainNode = audioContext.createGain();
                 
-                musicGainNode.gain.value = document.getElementById('sliderMusicVol').value / 100;
-                sfxGainNode.gain.value = document.getElementById('sliderSfxVol').value / 100;
+                const musicVol = localStorage.getItem('slime_musicVol') !== null ? localStorage.getItem('slime_musicVol') : 50;
+                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 50;
+                
+                musicGainNode.gain.value = parseInt(musicVol) / 100;
+                sfxGainNode.gain.value = parseInt(sfxVol) / 100;
                 
                 musicGainNode.connect(audioContext.destination);
                 sfxGainNode.connect(audioContext.destination);
@@ -924,23 +658,62 @@
         }
 
         async function fetchInitialResources() {
-            try {
-                audioArrayBuffers.perfect = await fetchAudioAsArrayBuffer('sfx/perfect.mp3');
-                audioArrayBuffers.great = await fetchAudioAsArrayBuffer('sfx/great.mp3');
-                audioArrayBuffers.good = await fetchAudioAsArrayBuffer('sfx/good.mp3');
-                audioArrayBuffers.empty = await fetchAudioAsArrayBuffer('sfx/empty.mp3');
-                audioArrayBuffers.long = await fetchAudioAsArrayBuffer('sfx/long.mp3');
+            const params = new URLSearchParams(window.location.search);
+            const audioFile = params.get('audio');
+            const chartFile = params.get('chart');
 
-                const res = await fetch('song_list.json');
-                if (!res.ok) throw new Error("无法加载 song_list.json 歌单配置");
-                const songs = await res.json();
+            if (!audioFile || !chartFile) {
+                alert(t('selectSong') || "请先选择歌曲");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // 并行加载基础音效和数据 (此时并不直接解码音频，等待用户点击)
+                const sfxPromises = [
+                    fetchAudioAsArrayBuffer('sfx/perfect.mp3').then(b => audioArrayBuffers.perfect = b),
+                    fetchAudioAsArrayBuffer('sfx/great.mp3').then(b => audioArrayBuffers.great = b),
+                    fetchAudioAsArrayBuffer('sfx/good.mp3').then(b => audioArrayBuffers.good = b),
+                    fetchAudioAsArrayBuffer('sfx/empty.mp3').then(b => audioArrayBuffers.empty = b),
+                    fetchAudioAsArrayBuffer('sfx/long.mp3').then(b => audioArrayBuffers.long = b)
+                ];
                 
-                renderSongList(songs);
-                btnPlayPause.textContent = t('selectSong');
+                await Promise.all([
+                    ...sfxPromises,
+                    fetch(chartFile).then(res => res.json()).then(data => loadChartData(data)),
+                    fetchAudioAsArrayBuffer(audioFile).then(b => audioArrayBuffers.music = b)
+                ]);
+
+                document.getElementById('readyTitle').textContent = t('decoding') || "解码中...";
+                
+                initAudio(); // 初始化 Web Audio API 上下文
+
+                sfxBuffers.perfect = await decodeAudioSafe(audioArrayBuffers.perfect);
+                sfxBuffers.great = await decodeAudioSafe(audioArrayBuffers.great);
+                sfxBuffers.good = await decodeAudioSafe(audioArrayBuffers.good);
+                sfxBuffers.empty = await decodeAudioSafe(audioArrayBuffers.empty);
+                sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
+                
+                loadedAudioBuffer = await decodeAudioSafe(audioArrayBuffers.music);
+                
+                startGameDirectly();
+
+                // 检查 AudioContext 是否因为浏览器的自动播放策略而被暂停
+                if (audioContext.state === 'suspended') {
+                    document.getElementById('readyTitle').innerHTML = '<span style="font-size:24px; cursor:pointer;">' + (currentLang === 'zh' ? '点击屏幕任意位置开始' : 'Tap anywhere to start') + '</span>';
+                    const resumeAndStart = () => {
+                        audioContext.resume().then(() => document.getElementById('startOverlay').classList.add('hidden'));
+                        document.removeEventListener('click', resumeAndStart);
+                        document.removeEventListener('touchstart', resumeAndStart);
+                    };
+                    document.addEventListener('click', resumeAndStart);
+                    document.addEventListener('touchstart', resumeAndStart);
+                } else {
+                    document.getElementById('startOverlay').classList.add('hidden');
+                }
             } catch (err) {
                 console.error("加载资源失败:", err);
-                document.getElementById('songList').innerHTML = `<div style="color: #ff4444; font-size: 14px;">${t('loadFailed')}: ${err.message}<br>Please ensure you are using a local HTTP server.</div>`;
-                btnPlayPause.textContent = t('loadFailed');
+                document.getElementById('readyTitle').innerHTML = `<span style="color:#ff4444">${t('loadFailed')}: ${err.message}</span>`;
             }
         }
 
@@ -1083,250 +856,11 @@
 
         btnPlayPause.addEventListener('click', togglePlay);
         
-        // --- 自动打歌按钮事件 ---
-        const btnAutoPlay = document.getElementById('btnAutoPlay');
-        btnAutoPlay.addEventListener('click', () => {
-            isAutoPlay = !isAutoPlay;
-            if (isAutoPlay) {
-                btnAutoPlay.textContent = t('autoOn');
-                btnAutoPlay.style.background = "var(--btn-hover)";
-            } else {
-                btnAutoPlay.textContent = t('autoOff');
-                btnAutoPlay.style.background = "#555";
-                // 关闭自动打歌时，释放所有由脚本按下的键
-                for (let l = 0; l < 4; l++) {
-                    activeKeys[l] = false;
-                    const k = document.getElementById('key' + l);
-                    if (k) k.classList.remove('active');
-                }
-            }
-        });
-
         function decodeAudioSafe(buffer) {
             return new Promise((resolve) => {
                 if (!buffer) { resolve(null); return; }
                 audioContext.decodeAudioData(buffer, resolve, () => resolve(null));
             });
-        }
-
-        // 向下兼容旧版 song_list.json 格式
-        function normalizeSongs(songs) {
-            return songs.map(s => {
-                if (!s.levels) {
-                    // 如果没有 levels，包裹默认难度
-                    s.levels = [{ level: '?', chart: s.chart }];
-                }
-                return s;
-            });
-        }
-
-        let allSongsData = [];
-        const DEFAULT_COVER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 空白透明/白底图片占位
-
-        let scrollDebounceTimer;
-        let selectedIndex = -1;
-        let isScrollingProgrammatically = false;
-
-        function renderSongList(songs) {
-            allSongsData = normalizeSongs(songs);
-            const listContainer = document.getElementById('songList');
-            listContainer.innerHTML = '';
-            selectedIndex = -1;
-            
-            if (allSongsData.length === 0) return;
-
-            // 复制多次实现无限循环滚动效果
-            const multiplyFactor = Math.max(5, Math.ceil(15 / allSongsData.length)); 
-            for (let i = 0; i < multiplyFactor; i++) {
-                allSongsData.forEach((song, originalIdx) => {
-                    const card = document.createElement('div');
-                    card.className = 'song-card';
-                    card.dataset.index = originalIdx;
-                    
-                    const coverSrc = song.cover ? song.cover : DEFAULT_COVER;
-                    const diffHtml = song.levels.map(l => `<div class="diff-badge">${l.level}</div>`).join('');
-                    
-                    card.innerHTML = `
-                        <img class="song-thumb" src="${coverSrc}" onerror="this.src='${DEFAULT_COVER}'">
-                        <div class="song-info">
-                            <div class="song-title">${song.title}</div>
-                            <div class="song-artist">${song.artist}</div>
-                        </div>
-                        <div class="song-diffs">${diffHtml}</div>
-                    `;
-                    
-                    // 点击卡片平滑居中并选中
-                    card.onclick = function() {
-                        if (isScrollingProgrammatically) return;
-                        isScrollingProgrammatically = true;
-                        
-                        selectedIndex = originalIdx;
-                        selectSongForDetail(song, this);
-                        
-                        listContainer.style.scrollSnapType = 'none';
-                        this.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                        
-                        setTimeout(() => {
-                            listContainer.style.scrollSnapType = 'y mandatory';
-                            isScrollingProgrammatically = false;
-                            // 触发一次防抖检查，执行可能的 Warp (防止点击了边缘的卡片)
-                            handleSongScroll({ target: listContainer }, true);
-                        }, 400); 
-                    };
-                    listContainer.appendChild(card);
-                });
-            }
-            
-            listContainer.removeEventListener('scroll', handleSongScroll);
-            listContainer.addEventListener('scroll', handleSongScroll);
-
-            // 初始定位到中间组，预留出上下可以滚动的充裕空间
-            setTimeout(() => {
-                const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
-                const targetCard = listContainer.children[middleGroupStartIndex];
-                if (targetCard) {
-                    isScrollingProgrammatically = true;
-                    listContainer.style.scrollSnapType = 'none';
-                    targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
-                    setTimeout(() => {
-                        listContainer.style.scrollSnapType = 'y mandatory';
-                        isScrollingProgrammatically = false;
-                    selectedIndex = 0;
-                    selectSongForDetail(allSongsData[0], targetCard);
-                    }, 50);
-                }
-            }, 50);
-        }
-
-        function handleSongScroll(e, force = false) {
-            if (isScrollingProgrammatically && !force) return;
-
-            const container = e.target || document.getElementById('songList');
-            
-            clearTimeout(scrollDebounceTimer);
-            // 使用防抖：等用户滚动真正停止后，再处理选中和无限循环跳跃(Warp)
-            scrollDebounceTimer = setTimeout(() => {
-                const containerCenter = container.getBoundingClientRect().top + container.offsetHeight / 2;
-                let closestCard = null;
-                let minDistance = Infinity;
-
-                // 寻找最靠近容器中心的卡片
-                Array.from(container.children).forEach(card => {
-                    const cardCenter = card.getBoundingClientRect().top + card.offsetHeight / 2;
-                    const distance = Math.abs(containerCenter - cardCenter);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestCard = card;
-                    }
-                });
-
-                if (!closestCard) return;
-                const originalIdx = parseInt(closestCard.dataset.index);
-                const totalElements = container.children.length;
-                const currentItemIdx = Array.from(container.children).indexOf(closestCard);
-                
-                // 检查是否滚动到了边缘需要无缝跳跃 (Warp)
-                if (currentItemIdx < allSongsData.length || currentItemIdx >= totalElements - allSongsData.length) {
-                    isScrollingProgrammatically = true;
-                    const multiplyFactor = totalElements / allSongsData.length;
-                    const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
-                    const targetCard = container.children[middleGroupStartIndex + originalIdx];
-                    
-                    container.style.scrollSnapType = 'none';
-                    targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
-                    
-                    setTimeout(() => {
-                        container.style.scrollSnapType = 'y mandatory';
-                        isScrollingProgrammatically = false;
-                        
-                        if (originalIdx !== selectedIndex) {
-                            selectedIndex = originalIdx;
-                            selectSongForDetail(allSongsData[originalIdx], targetCard);
-                        } else {
-                            // 虽然没有换歌，但元素变了，需要更新 selected 样式
-                            document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
-                            targetCard.classList.add('selected');
-                        }
-                    }, 50);
-                } else {
-                    // 不需要 Warp
-                    if (originalIdx !== selectedIndex) {
-                        selectedIndex = originalIdx;
-                        selectSongForDetail(allSongsData[originalIdx], closestCard);
-                    } else {
-                        // 确保选中样式没有掉
-                        document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
-                        closestCard.classList.add('selected');
-                    }
-                }
-            }, 150); // 滚动停止 150ms 后触发结算
-        }
-
-        function selectSongForDetail(song, centerCardElement) {
-            document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
-            if (centerCardElement) {
-                centerCardElement.classList.add('selected');
-            }
-            
-            document.getElementById('songDetailTop').style.display = 'flex';
-            document.getElementById('detailCover').src = song.cover ? song.cover : DEFAULT_COVER;
-            document.getElementById('detailCover').onerror = function() { this.src = DEFAULT_COVER; };
-            document.getElementById('detailTitle').textContent = song.title;
-            document.getElementById('detailArtist').textContent = song.artist;
-            
-            const diffSelector = document.getElementById('difficultySelector');
-            diffSelector.innerHTML = '';
-            
-            song.levels.forEach(levelInfo => {
-                const btn = document.createElement('div');
-                btn.className = 'diff-btn';
-                btn.textContent = levelInfo.level;
-                btn.onclick = () => playSongWithLevel(song, levelInfo, btn);
-                diffSelector.appendChild(btn);
-            });
-        }
-
-        async function playSongWithLevel(song, levelInfo, btnElement) {
-            const originalText = btnElement.textContent;
-            btnElement.textContent = '⏳';
-            document.getElementById('songDetailTop').style.pointerEvents = "none";
-            
-            initAudio(); // 初始化音频上下文 (需用户手势)
-
-            try {
-                // 解码音效（如已解码会立即返回）
-                if (!sfxBuffers.perfect) {
-                    sfxBuffers.perfect = await decodeAudioSafe(audioArrayBuffers.perfect);
-                    sfxBuffers.great = await decodeAudioSafe(audioArrayBuffers.great);
-                    sfxBuffers.good = await decodeAudioSafe(audioArrayBuffers.good);
-                    sfxBuffers.empty = await decodeAudioSafe(audioArrayBuffers.empty);
-                    sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
-                }
-
-                // 请求并解析指定谱面
-                const chartRes = await fetch(levelInfo.chart);
-                if(!chartRes.ok) throw new Error("无法加载谱面");
-                const chartData = await chartRes.json();
-                
-                // 请求并解码指定音频
-                const audioBufferRes = await fetchAudioAsArrayBuffer(song.audio);
-                if (!audioBufferRes) throw new Error("无法加载音频文件 " + song.audio);
-                
-                btnElement.textContent = '⚙️'; // 解码中
-                loadedAudioBuffer = await decodeAudioSafe(audioBufferRes);
-                if (!loadedAudioBuffer) throw new Error("音频解码失败");
-
-                loadChartData(chartData);
-                startOverlay.classList.add('hidden');
-                btnBackToMenu.style.display = 'block';
-                
-                startGameDirectly();
-            } catch (err) {
-                alert((currentLang === 'zh' ? "加载失败: " : "Load failed: ") + err.message);
-            } finally {
-                document.getElementById('songDetailTop').style.pointerEvents = "auto";
-                if (btnElement) btnElement.textContent = originalText;
-            }
         }
 
         function startGameDirectly() {
@@ -1373,17 +907,12 @@
         }
 
         document.getElementById('btnResultBack').addEventListener('click', () => {
-            document.getElementById('resultOverlay').classList.add('hidden');
-            btnBackToMenu.click(); // 复用返回选歌的逻辑
+            window.location.href = 'index.html';
         });
 
         // 返回选歌界面逻辑
         btnBackToMenu.addEventListener('click', () => {
-            if (isPlaying) togglePlay(); // 先暂停当前游戏
-            startOverlay.classList.remove('hidden');
-            btnBackToMenu.style.display = 'none';
-            btnPlayPause.textContent = t('selectSong');
-            btnPlayPause.disabled = true;
+            window.location.href = 'index.html';
         });
 
         // --- 移动端触摸映射绑定 (以底部的静止史莱姆区域作为按键) ---
@@ -1446,7 +975,7 @@
         // --- 长按释放逻辑 ---
         function releaseHold(laneIndex) {
             if (!isPlaying) return;
-            const currentMs = (audioContext.currentTime - startTime) * 1000;
+            const currentMs = (audioContext.currentTime - startTime) * 1000 + audioOffsetMs;
             const targetNote = chartNotes.find(n => n.lane === laneIndex && n.hitState === 5); // 寻找正在Holding的音符
             
             if (targetNote) {
@@ -1525,7 +1054,7 @@
         function judgeHit(laneIndex) {
             if (!isPlaying) return;
             
-            const currentMs = (audioContext.currentTime - startTime) * 1000;
+            const currentMs = (audioContext.currentTime - startTime) * 1000 + audioOffsetMs;
             const targetNote = chartNotes.find(n => n.lane === laneIndex && n.hitState === 0);
             
             let hitType = 'EMPTY';
@@ -1913,7 +1442,7 @@
             ctx.clearRect(0, 0, w, h);
 
             const currentAudioTimeSec = audioContext.currentTime - startTime;
-            const currentAudioTimeMs = currentAudioTimeSec * 1000;
+            const currentAudioTimeMs = currentAudioTimeSec * 1000 + audioOffsetMs;
 
             const currentBeat = timeToBeat(currentAudioTimeMs);
 
@@ -2146,110 +1675,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // --- 设置界面事件绑定 ---
-        const btnOpenSettings = document.getElementById('btnOpenSettings');
-        const settingsOverlay = document.getElementById('settingsOverlay');
-        let wasStartOverlayVisible = true;
-        
-        btnOpenSettings.addEventListener('click', () => {
-            if (isPlaying) togglePlay(); // 游戏中途点击设置时，先暂停游戏
-            wasStartOverlayVisible = !document.getElementById('startOverlay').classList.contains('hidden');
-            document.getElementById('startOverlay').classList.add('hidden');
-            settingsOverlay.classList.remove('hidden');
-        });
-
-        document.getElementById('btnSettingsBack').addEventListener('click', () => {
-            settingsOverlay.classList.add('hidden');
-            if (wasStartOverlayVisible) document.getElementById('startOverlay').classList.remove('hidden');
-        });
-
-        document.getElementById('chkLightMode').addEventListener('change', (e) => {
-            isLightMode = e.target.checked;
-            if (isLightMode) {
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.remove('light-mode');
-            }
-            localStorage.setItem('slime_lightMode', isLightMode);
-            updateThemeColors();
-        });
-
-        document.getElementById('sliderHue').addEventListener('input', (e) => {
-            const hue = e.target.value;
-            themeHueOffset = parseInt(hue);
-            document.documentElement.style.setProperty('--theme-hue', hue + 'deg');
-            localStorage.setItem('slime_hue', hue);
-            updateThemeColors();
-        });
-
-        document.getElementById('sliderMusicVol').addEventListener('input', (e) => {
-            const vol = e.target.value;
-            document.getElementById('valMusicVol').textContent = vol;
-            if (musicGainNode) musicGainNode.gain.value = vol / 100;
-            localStorage.setItem('slime_musicVol', vol);
-        });
-
-        document.getElementById('sliderSfxVol').addEventListener('input', (e) => {
-            const vol = e.target.value;
-            document.getElementById('valSfxVol').textContent = vol;
-            if (sfxGainNode) sfxGainNode.gain.value = vol / 100;
-            localStorage.setItem('slime_sfxVol', vol);
-        });
-
-        document.getElementById('sliderSlimeScale').addEventListener('input', (e) => {
-            const scale = e.target.value;
-            document.getElementById('valSlimeScale').textContent = scale;
-            slimeScaleFactor = parseInt(scale) / 100;
-            localStorage.setItem('slime_scale', scale);
-        });
-
-        // 自定义图片上传事件绑定
-        for (let i = 0; i < 4; i++) {
-            document.getElementById('uploadSlime' + i).addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.onload = () => { customSlimeImages[i] = img; };
-                        img.src = event.target.result;
-                        try {
-                            localStorage.setItem('slime_customImg' + i, event.target.result);
-                        } catch (err) {
-                            console.warn("图片过大，无法保存至本地:", err);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        document.getElementById('btnResetSlimes').addEventListener('click', () => {
-            customSlimeImages = [null, null, null, null];
-            for (let i = 0; i < 4; i++) {
-                localStorage.removeItem('slime_customImg' + i);
-            }
-        });
-
-        // 预设皮肤事件绑定
-        // 提示: 你可以在这里修改对应的文件名以匹配你 skin/ 文件夹下实际的资源名称
-        const presetSkins = ['./skin/preset1.webp', './skin/preset2.webp', './skin/preset3.webp', './skin/preset4.webp'];
-        for (let i = 0; i < 4; i++) {
-            document.getElementById('btnPreset' + (i + 1)).addEventListener('click', () => {
-                const skinUrl = presetSkins[i];
-                const img = new Image();
-                img.onload = () => {
-                    for (let j = 0; j < 4; j++) {
-                        customSlimeImages[j] = img;
-                        localStorage.setItem('slime_customImg' + j, skinUrl);
-                    }
-                };
-                img.onerror = () => {
-                    alert((currentLang === 'zh' ? "预设皮肤加载失败！\n请检查服务器上是否存在该文件以及大小写是否匹配: " : "Preset skin load failed!\nFile not found: ") + skinUrl);
-                    console.error("Failed to load skin image:", skinUrl);
-                };
-                img.src = skinUrl;
-            });
-        }
     </script>
 </body>
 </html>

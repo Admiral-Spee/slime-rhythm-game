@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title data-i18n="title">节奏史莱姆 - 延迟校准测试</title>
+    <style>
+        :root {
+            --theme-hue: 0deg;
+            --bg-color: hsl(calc(215deg + var(--theme-hue)), 45%, 12%);
+            --text-main: #fff;
+            --text-sub: hsl(calc(203deg + var(--theme-hue)), 25%, 69%);
+            --panel-bg: hsla(calc(217deg + var(--theme-hue)), 66%, 12%, 0.85);
+            --border-main: hsl(calc(197deg + var(--theme-hue)), 62%, 38%);
+            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.3);
+            --overlay-bg: hsla(calc(212deg + var(--theme-hue)), 86%, 5%, 0.85);
+            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 45%);
+            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
+            --container-bg: hsla(calc(216deg + var(--theme-hue)), 71%, 7%, 0.6);
+        }
+        body.light-mode {
+            --bg-color: hsl(calc(212deg + var(--theme-hue)), 41%, 93%);
+            --text-main: hsl(calc(210deg + var(--theme-hue)), 39%, 17%);
+            --text-sub: hsl(calc(209deg + var(--theme-hue)), 24%, 38%);
+            --panel-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
+            --border-main: hsl(calc(217deg + var(--theme-hue)), 89%, 75%);
+            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.4);
+            --overlay-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
+            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
+            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 65%);
+            --container-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.7);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: var(--bg-color); color: var(--text-main); font-family: sans-serif;
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; min-height: 100dvh; transition: background-color 0.3s, color 0.3s;
+        }
+        .bg-glow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 30%, hsl(calc(204deg + var(--theme-hue)), 40%, 28%) 0%, var(--bg-color) 70%);
+            transition: background 0.3s; z-index: -2;
+        }
+        body.light-mode .bg-glow { background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%); }
+        .stars {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px; opacity: 0.4; z-index: -1;
+        }
+        body.light-mode .stars { opacity: 0.9; filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5)); }
+        .game-container {
+            position: relative; width: 100%; max-width: 500px; height: 90vh; max-height: 850px;
+            display: flex; flex-direction: column; background: var(--container-bg);
+            border: 2px solid var(--border-main); border-radius: 15px; box-shadow: 0 0 30px var(--border-sub); overflow: hidden;
+        }
+        @media (max-width: 600px) {
+            .game-container { max-width: 100%; height: 100vh; height: 100dvh; max-height: none; border: none; border-radius: 0; }
+        }
+        .config-panel { background: var(--panel-bg); padding: 15px; border-bottom: 2px solid var(--border-main); display: flex; flex-direction: column; gap: 15px; z-index: 10; }
+        .config-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+        .config-row input[type="range"] { width: 55%; }
+        .btn { background: var(--btn-bg); border: none; border-radius: 6px; color: white; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn:disabled { background: #444; cursor: not-allowed; }
+        
+        .stage { position: relative; flex-grow: 1; width: 100%; overflow: hidden; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay-bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; transition: 0.3s;
+        }
+        .overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay h2 { color: #ffcc00; margin-bottom: 15px; }
+        .instructions { font-size: 12px; color: #aaa; text-align: center; line-height: 1.6; margin-top: 10px; }
+
+        /* 判定字样动画效果 */
+        .judge-display {
+            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            font-size: 40px; font-weight: 900; font-style: italic; text-align: center; pointer-events: none; opacity: 0; z-index: 5;
+            text-shadow: 0 0 10px currentColor, 2px 2px 0px #000;
+        }
+        @keyframes judgePopup {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            30% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(-50%, -70%) scale(0.9); opacity: 0; }
+        }
+        .judge-fast { color: #00ccff; animation: judgePopup 0.5s ease-out forwards; } /* 偏快蓝色 */
+        .judge-slow { color: #ff4444; animation: judgePopup 0.5s ease-out forwards; } /* 偏慢红色 */
+        .judge-perfect { color: #a3ff66; animation: judgePopup 0.5s ease-out forwards; } /* 完美绿色 */
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="stars"></div>
+    <div class="game-container">
+        <div class="config-panel">
+            <div class="config-row">
+                <button id="btnBack" class="btn" data-i18n="backToMenu">返回选歌</button>
+                <button id="btnPlayPause" class="btn" disabled data-i18n="waiting">等待加载...</button>
+            </div>
+            <div class="config-row" style="color:#ffcc00; font-weight: bold;">
+                <span><span data-i18n="audioOffset">音频偏移:</span> <span id="valOffset">0</span> ms</span>
+                <input type="range" id="sliderOffset" min="-300" max="300" value="0" step="5">
+            </div>
+            <div class="instructions" data-i18n="instructions">
+                闭上眼睛听节拍，在脑海中倒数第4拍点击屏幕/空格<br>
+                <span style="color:#00ccff">蓝色: 偏快(按早了)</span> | <span style="color:#ff4444">红色: 偏慢(按晚了)</span><br>
+                调滑动条使反馈数字尽量靠近 0
+            </div>
+        </div>
+
+        <div class="stage" id="stageContainer">
+            <div id="judgeDisplay" class="judge-display"></div>
+            <canvas id="gameCanvas"></canvas>
+            
+            <div id="startOverlay" class="overlay">
+                <h2 id="readyTitle" data-i18n="loadingSfx">加载打拍器音效...</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 国际化 ---
+        const i18n = {
+            zh: { 
+                title: "节奏史莱姆 - 延迟校准测试",
+                backToMenu: "返回选歌",
+                waiting: "等待加载...",
+                audioOffset: "音频偏移:",
+                instructions: '闭上眼睛听节拍，在脑海中倒数第4拍点击屏幕/空格<br><span style="color:#00ccff">蓝色: 偏快(按早了)</span> | <span style="color:#ff4444">红色: 偏慢(按晚了)</span><br>调滑动条使反馈数字尽量靠近 0',
+                loadingSfx: "加载打拍器音效...",
+                tapToStart: "点击屏幕开始校准",
+                loadFailed: "加载失败",
+                startTest: "开始测试",
+                pause: "暂停"
+            },
+            en: { 
+                title: "Slime Rhythm - Offset Test",
+                backToMenu: "Back to Menu",
+                waiting: "Loading...",
+                audioOffset: "Audio Offset:",
+                instructions: 'Close your eyes, listen to the beat, and tap on the 4th beat.<br><span style="color:#00ccff">Blue: Fast (Early)</span> | <span style="color:#ff4444">Red: Slow (Late)</span><br>Adjust the slider to make the feedback number as close to 0 as possible.',
+                loadingSfx: "Loading metronome SFX...",
+                tapToStart: "Tap anywhere to start calibration",
+                loadFailed: "Load Failed",
+                startTest: "Start Test",
+                pause: "Pause"
+            }
+        };
+        let currentLang = localStorage.getItem('slime_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+        function t(key) { return i18n[currentLang][key] || key; }
+
+        // --- 全局状态 ---
+        let audioContext = null;
+        let sfxGainNode = null;
+        let emptyBuffer = null;
+        
+        let isPlaying = false;
+        let startTime = 0;
+        let audioOffsetMs = 0;
+        let scheduledBeats = 0;
+        let chartNotes = []; // 动态生成的音符列表
+        let hitEffects = [];
+        let laneGlow = 0;
+        let keyIsDown = false;
+        let keyDownTimer = null;
+
+        let themeHueOffset = 0;
+        let isLightMode = false;
+        let slimeScaleFactor = 1.0;
+        let customSlimeImage = null;
+
+        const BPM = 120;
+        const BEAT_DURATION = 60 / BPM; // 0.5秒一拍
+        const VISIBLE_BEATS = 6;
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let stageWidth = 0, stageHeight = 0;
+
+        // --- 初始化设置与事件 ---
+        function loadSettings() {
+            const savedOffset = localStorage.getItem('slime_audioOffset');
+            if (savedOffset !== null) {
+                audioOffsetMs = parseInt(savedOffset);
+                document.getElementById('sliderOffset').value = audioOffsetMs;
+                document.getElementById('valOffset').textContent = audioOffsetMs;
+            }
+            if (localStorage.getItem('slime_lightMode') === 'true') {
+                isLightMode = true; document.body.classList.add('light-mode');
+            }
+            const savedHue = localStorage.getItem('slime_hue');
+            if (savedHue !== null) {
+                themeHueOffset = parseInt(savedHue);
+                document.documentElement.style.setProperty('--theme-hue', savedHue + 'deg');
+            }
+            const savedScale = localStorage.getItem('slime_scale');
+            if (savedScale !== null) slimeScaleFactor = parseInt(savedScale) / 100;
+            const savedImg = localStorage.getItem('slime_customImg0'); // 使用第一轨的皮肤
+            if (savedImg) {
+                const img = new Image();
+                img.onload = () => customSlimeImage = img;
+                img.src = savedImg;
+            }
+        }
+        loadSettings();
+        
+        function updateUIi18n() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.innerHTML = i18n[currentLang][el.getAttribute('data-i18n')] || el.innerHTML;
+            });
+            if (document.title !== t('title')) document.title = t('title');
+        }
+        updateUIi18n();
+
+        document.getElementById('sliderOffset').addEventListener('input', (e) => {
+            audioOffsetMs = parseInt(e.target.value);
+            document.getElementById('valOffset').textContent = audioOffsetMs;
+            localStorage.setItem('slime_audioOffset', audioOffsetMs);
+        });
+
+        document.getElementById('btnBack').addEventListener('click', () => {
+            localStorage.setItem('slime_audioOffset', audioOffsetMs); // 保险起见返回时再存一次
+            window.location.href = 'index.html';
+        });
+
+        function resizeCanvas() {
+            const container = document.getElementById('stageContainer');
+            const dpr = window.devicePixelRatio || 1;
+            stageWidth = container.clientWidth;
+            stageHeight = container.clientHeight;
+            canvas.width = stageWidth * dpr;
+            canvas.height = stageHeight * dpr;
+            ctx.scale(dpr, dpr);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- 音频与资源加载 ---
+        async function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                sfxGainNode = audioContext.createGain();
+                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 50;
+                sfxGainNode.gain.value = parseInt(sfxVol) / 100;
+                sfxGainNode.connect(audioContext.destination);
+            }
+        }
+
+        async function fetchResources() {
+            try {
+                const res = await fetch('sfx/empty.mp3');
+                if (!res.ok) throw new Error("Audio file not found");
+                const arrayBuffer = await res.arrayBuffer();
+                
+                initAudio();
+                emptyBuffer = await new Promise(resolve => audioContext.decodeAudioData(arrayBuffer, resolve));
+                
+                document.getElementById('readyTitle').textContent = t('tapToStart');
+                
+                const startHandler = () => {
+                    if (audioContext.state === 'suspended') audioContext.resume();
+                    document.getElementById('startOverlay').classList.add('hidden');
+                    document.removeEventListener('click', startHandler);
+                    document.removeEventListener('touchstart', startHandler);
+                    togglePlay();
+                };
+                document.addEventListener('click', startHandler);
+                document.addEventListener('touchstart', startHandler);
+                
+                document.getElementById('btnPlayPause').disabled = false;
+            } catch (err) {
+                document.getElementById('readyTitle').innerHTML = `<span style="color:#ff4444">${t('loadFailed')}: ${err.message}</span>`;
+            }
+        }
+        window.addEventListener('DOMContentLoaded', fetchResources);
+
+        function playSfx(time) {
+            if (!emptyBuffer) return;
+            const source = audioContext.createBufferSource();
+            source.buffer = emptyBuffer;
+            source.connect(sfxGainNode);
+            source.start(time);
+        }
+
+        // --- 核心调度系统 ---
+        function togglePlay() {
+            if (isPlaying) {
+                isPlaying = false;
+                document.getElementById('btnPlayPause').textContent = t('startTest');
+            } else {
+                initAudio();
+                startTime = audioContext.currentTime + 1; // 延迟1秒开始第一拍
+                scheduledBeats = 0;
+                chartNotes = [];
+                isPlaying = true;
+                document.getElementById('btnPlayPause').textContent = t('pause');
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        document.getElementById('btnPlayPause').addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+
+        function scheduleBeats() {
+            const currentTime = audioContext.currentTime;
+            // 提前排程未来 2 秒的节拍
+            while ((scheduledBeats * BEAT_DURATION + startTime) < currentTime + 2) {
+                const playTime = startTime + scheduledBeats * BEAT_DURATION;
+                
+                // 精确定时播放打节拍声音 (空敲音效)
+                playSfx(playTime);
+                
+                // 每小节第 4 拍生成一个音符 (假设4/4拍，即索引 3, 7, 11...)
+                if (scheduledBeats % 4 === 3) {
+                    chartNotes.push({
+                        beat: scheduledBeats,
+                        timeMs: scheduledBeats * BEAT_DURATION * 1000,
+                        hitState: 0 // 0: 未打, 1: 已打
+                    });
+                }
+                scheduledBeats++;
+            }
+        }
+
+        // --- 玩家输入处理 ---
+        function handleInput() {
+            if (!isPlaying) return;
+            
+            // 视觉反馈，让底部史莱姆扁下去
+            keyIsDown = true;
+            if (keyDownTimer) clearTimeout(keyDownTimer);
+            keyDownTimer = setTimeout(() => { keyIsDown = false; }, 100);
+
+            // 加入了滑块的偏移量用于计算判定
+            const currentMs = (audioContext.currentTime - startTime) * 1000 + audioOffsetMs;
+            
+            // 寻找正负 250ms 内最接近的音符
+            let closestNote = null;
+            let minDiff = 250;
+            
+            for (let note of chartNotes) {
+                if (note.hitState === 0) {
+                    let diff = currentMs - note.timeMs;
+                    if (Math.abs(diff) < minDiff) {
+                        minDiff = Math.abs(diff);
+                        closestNote = note;
+                    }
+                }
+            }
+            
+            if (closestNote) {
+                const diff = currentMs - closestNote.timeMs;
+                closestNote.hitState = 1;
+                
+                const displayTxt = `${diff > 0 ? '+' : ''}${Math.round(diff)} ms`;
+                // 负数代表按早了（快了），正数代表按晚了（慢了）
+                let className = diff < 0 ? 'judge-fast' : 'judge-slow';
+                if (Math.abs(diff) <= 15) className = 'judge-perfect'; // 刚好在极小范围内，给点鼓励
+                
+                const judgeDisplay = document.getElementById('judgeDisplay');
+                judgeDisplay.textContent = displayTxt;
+                judgeDisplay.className = 'judge-display ' + className;
+                judgeDisplay.style.animation = 'none';
+                judgeDisplay.offsetHeight; 
+                judgeDisplay.style.animation = null;
+                
+                createSparks();
+                laneGlow = 1.0;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleInput(); });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(); }, { passive: false });
+        canvas.addEventListener('mousedown', handleInput);
+
+        // --- 渲染逻辑 ---
+        // 单轨透视投影
+        function projectPerspective(remBeats, edgeOffset = 0) {
+            const vanishingY = stageHeight * 0.1;
+            const judgeY = stageHeight * 0.85;
+            const progress = Math.max(0, Math.min(1, remBeats / VISIBLE_BEATS));
+            const t = 1 - Math.pow(1 - progress, 2);
+            
+            const y = judgeY - (judgeY - vanishingY) * t;
+            const topScale = 0.25;
+            const scale = topScale + (1 - topScale) * (1 - t);
+            
+            // 居中单轨道，edgeOffset 用来算轨道边缘
+            const centerX = stageWidth / 2;
+            const laneBaseWidth = stageWidth / 3;
+            const x = centerX + (edgeOffset * laneBaseWidth / 2) * scale;
+            
+            return { x, y, scale };
+        }
+
+        function adjustColorBurn(hex, percent) {
+            let R = parseInt(hex.substring(1,3),16); let G = parseInt(hex.substring(3,5),16); let B = parseInt(hex.substring(5,7),16);
+            R = parseInt(R * (100 + percent) / 100); G = parseInt(G * (100 + percent) / 100); B = parseInt(B * (100 + percent) / 100);
+            R = (R<255)?R:255; G = (G<255)?G:255; B = (B<255)?B:255;
+            R = (R>0)?R:0; G = (G>0)?G:0; B = (B>0)?B:0;
+            const rHex = (R.toString(16).length==1)?"0"+R.toString(16):R.toString(16);
+            const gHex = (G.toString(16).length==1)?"0"+G.toString(16):G.toString(16);
+            const bHex = (B.toString(16).length==1)?"0"+B.toString(16):B.toString(16);
+            return "#"+rHex+gHex+bHex;
+        }
+
+        function getDisplayRemBeats(noteBeat, currentBeat) {
+            const floorBeat = Math.floor(currentBeat);
+            const fractionalBeat = currentBeat - floorBeat;
+            const transitionDuration = 0.2;
+            const transitionStart = 1.0 - transitionDuration;
+            let displayCurrentBeat = floorBeat;
+            if (fractionalBeat >= transitionStart) {
+                const progress = (fractionalBeat - transitionStart) / transitionDuration;
+                displayCurrentBeat += 1 - Math.pow(1 - progress, 2);
+            }
+            return Math.max(0, noteBeat - displayCurrentBeat);
+        }
+
+        function drawSlime(ctx, x, y, radius, color, isReceptor, isMissed=false, keyIsDown=false, currentBeat=0) {
+            ctx.save();
+            let scaleY = 1.0, scaleX = 1.0;
+            if (isReceptor) {
+                if (keyIsDown) { scaleY = 0.7; scaleX = 1.25; } else { scaleY = 1.0; scaleX = 1.0; }
+            } else {
+                const pulse = Math.cos(currentBeat * Math.PI * 2) * 0.15;
+                scaleX = 1 + pulse; scaleY = 1 - pulse;
+            }
+            ctx.translate(x, y); ctx.scale(scaleX, scaleY);
+            
+            if (customSlimeImage) {
+                const img = customSlimeImage;
+                const imgSize = radius * 2.5; 
+                const imgRatio = img.width / img.height;
+                let drawWidth = imgSize, drawHeight = imgSize;
+                if (imgRatio > 1) drawHeight = imgSize / imgRatio; 
+                else drawWidth = imgSize * imgRatio;  
+                
+                ctx.globalAlpha = isMissed ? 0.3 : 1.0;
+                if (isMissed) ctx.filter = 'grayscale(100%)'; 
+                ctx.shadowBlur = isReceptor ? 20 : 12; ctx.shadowColor = color;
+                ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2 - radius * 0.2, drawWidth, drawHeight);
+                ctx.shadowBlur = 0; if (isMissed) ctx.filter = 'none'; ctx.globalAlpha = 1.0;
+            } else {
+            ctx.shadowBlur = isReceptor ? 20 : 12;
+            ctx.shadowColor = color;
+            const gradient = ctx.createRadialGradient(0, -radius*0.2, radius*0.2, 0, 0, radius);
+            if (isMissed) {
+                gradient.addColorStop(0, '#555'); gradient.addColorStop(1, '#222'); ctx.shadowColor = '#333';
+            } else {
+                gradient.addColorStop(0, '#fff');
+                if (isLightMode) { gradient.addColorStop(0.4, adjustColorBurn(color, 25)); gradient.addColorStop(1, adjustColorBurn(color, -10)); }
+                else { gradient.addColorStop(0.3, color); gradient.addColorStop(1, adjustColorBurn(color, -40)); }
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(-radius, 0);
+            ctx.bezierCurveTo(-radius, -radius * 1.1, -radius * 0.6, -radius * 1.3, 0, -radius * 1.3);
+            ctx.bezierCurveTo(radius * 0.6, -radius * 1.3, radius, -radius * 1.1, radius, 0);
+            ctx.bezierCurveTo(radius, radius * 0.6, radius * 0.7, radius * 0.9, 0, radius * 0.9);
+            ctx.bezierCurveTo(-radius * 0.7, radius * 0.9, -radius, radius * 0.6, -radius, 0);
+            ctx.closePath(); ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#110224';
+            if (isMissed) {
+                ctx.strokeStyle = '#666'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-radius*0.4, -radius*0.4); ctx.lineTo(-radius*0.2, -radius*0.2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-radius*0.2, -radius*0.4); ctx.lineTo(-radius*0.4, -radius*0.2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(radius*0.2, -radius*0.4); ctx.lineTo(radius*0.4, -radius*0.2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(radius*0.4, -radius*0.4); ctx.lineTo(radius*0.2, -radius*0.2); ctx.stroke();
+            } else {
+                ctx.beginPath(); ctx.arc(-radius * 0.35, -radius * 0.35, radius * 0.12, 0, Math.PI * 2); ctx.arc(radius * 0.35, -radius * 0.35, radius * 0.12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-radius * 0.32, -radius * 0.38, radius * 0.04, 0, Math.PI * 2); ctx.arc(radius * 0.38, -radius * 0.38, radius * 0.04, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.strokeStyle = '#110224'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+            ctx.beginPath();
+            if (isReceptor && !keyIsDown) {
+                ctx.fillStyle = '#110224'; ctx.arc(0, -radius*0.1, radius*0.08, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.arc(-radius*0.08, -radius * 0.15, radius * 0.08, 0, Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(radius*0.08, -radius * 0.15, radius * 0.08, 0, Math.PI); ctx.stroke();
+            }
+            }
+            ctx.restore();
+        }
+
+        function createSparks() {
+            const y = stageHeight * 0.85;
+            for (let i = 0; i < 20; i++) {
+                hitEffects.push({
+                    x: stageWidth / 2, y: y,
+                    vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.9) * 15,
+                    radius: Math.random() * 5 + 3,
+                    life: 1.0, decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+
+        function updateAndDrawEffects() {
+            if (hitEffects.length === 0) return;
+            ctx.save(); ctx.globalCompositeOperation = 'screen';
+            for (let i = hitEffects.length - 1; i >= 0; i--) {
+                const p = hitEffects[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= p.decay;
+                if (p.life <= 0) { hitEffects.splice(i, 1); continue; }
+                const alpha = Math.max(0, p.life); const r = Math.max(0, p.radius * p.life);
+                ctx.globalAlpha = alpha; ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+            
+            scheduleBeats(); // 执行排程
+            
+            ctx.clearRect(0, 0, stageWidth, stageHeight);
+            
+            // 核心修复：将视觉渲染时间与偏移量分离！
+            // 视觉时间：完全基于硬件绝对时间，确保下落画面与节拍器声音死锁，不随滑块变化
+            const visualTimeMs = (audioContext.currentTime - startTime) * 1000;
+            const currentBeat = visualTimeMs / 1000 / BEAT_DURATION;
+            
+            // 判定时间（仅用于计算是否漏击 Miss）：包含玩家调节的偏移量
+            const currentAudioTimeMs = visualTimeMs + audioOffsetMs;
+
+            // 1. 画单轨网格
+            ctx.save();
+            const trackBaseHue = 202;
+            const currentHue = (trackBaseHue + themeHueOffset) % 360;
+            const trackL = isLightMode ? 45 : 60;
+            ctx.strokeStyle = `hsla(${currentHue}, 100%, ${trackL}%, 0.4)`;
+            ctx.lineWidth = 2;
+            for (let d = 0; d < VISIBLE_BEATS; d++) {
+                const ptTopLeft = projectPerspective(d, -1);
+                const ptTopRight = projectPerspective(d, 1);
+                const ptBottomRight = projectPerspective(d + 1, 1);
+                const ptBottomLeft = projectPerspective(d + 1, -1);
+                
+                ctx.beginPath();
+                ctx.moveTo(ptTopLeft.x, ptTopLeft.y); ctx.lineTo(ptTopRight.x, ptTopRight.y);
+                ctx.lineTo(ptBottomRight.x, ptBottomRight.y); ctx.lineTo(ptBottomLeft.x, ptBottomLeft.y);
+                ctx.closePath();
+                ctx.fillStyle = d % 2 === 0 ? `hsla(${currentHue}, 100%, ${trackL}%, 0.15)` : `hsla(${currentHue}, 100%, ${trackL}%, 0.05)`;
+                ctx.fill(); ctx.stroke();
+            }
+            // 判定线
+            const judgeY = stageHeight * 0.85;
+            ctx.strokeStyle = `hsla(${currentHue}, 100%, ${trackL}%, 1)`; ctx.lineWidth = 4; ctx.shadowBlur = 10; ctx.shadowColor = `hsla(${currentHue}, 100%, ${trackL}%, 1)`;
+            ctx.beginPath(); ctx.moveTo(0, judgeY); ctx.lineTo(stageWidth, judgeY); ctx.stroke();
+            ctx.restore();
+
+            // 2. 轨道发光
+            if (laneGlow > 0) {
+                ctx.save();
+                const pTL = projectPerspective(VISIBLE_BEATS, -1); const pTR = projectPerspective(VISIBLE_BEATS, 1);
+                const pBR = projectPerspective(0, 1); const pBL = projectPerspective(0, -1);
+                const gradient = ctx.createLinearGradient(0, judgeY, 0, stageHeight * 0.1);
+                gradient.addColorStop(0, '#ff9800'); gradient.addColorStop(1, 'transparent');
+                ctx.globalAlpha = laneGlow * 0.6; ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = gradient;
+                ctx.beginPath(); ctx.moveTo(pTL.x, pTL.y); ctx.lineTo(pTR.x, pTR.y); ctx.lineTo(pBR.x, pBR.y); ctx.lineTo(pBL.x, pBL.y); ctx.fill();
+                ctx.restore();
+                laneGlow -= 0.05;
+            }
+
+            // 3. 画底部接收器史莱姆
+            const baseNoteRadius = (stageWidth / 10) * slimeScaleFactor;
+            drawSlime(ctx, stageWidth / 2, judgeY, baseNoteRadius, '#ff9800', true, false, keyIsDown, currentBeat);
+
+            // 4. 清理、筛选及绘制下落音符
+            // 去除掉已经过去太久的音符防止无限增长
+            chartNotes = chartNotes.filter(n => currentAudioTimeMs - n.timeMs < 1000);
+            
+            let slimesToDraw = [];
+            for (let i = chartNotes.length - 1; i >= 0; i--) {
+                const note = chartNotes[i];
+                const remBeats = note.beat - currentBeat;
+                
+                if (currentAudioTimeMs - note.timeMs > 250 && note.hitState === 0) {
+                    note.hitState = 3;
+                    document.getElementById('judgeDisplay').textContent = "MISS";
+                    document.getElementById('judgeDisplay').className = 'judge-display judge-slow';
+                }
+                
+                const displayStart = getDisplayRemBeats(note.beat, currentBeat);
+                if (displayStart <= VISIBLE_BEATS && remBeats > -1 && (note.hitState === 0 || note.hitState === 3)) {
+                    slimesToDraw.push({ depth: displayStart, isMissed: note.hitState === 3 });
+                }
+            }
+            
+            slimesToDraw.sort((a, b) => b.depth - a.depth);
+            slimesToDraw.forEach(s => {
+                const p = projectPerspective(s.depth, 0);
+                drawSlime(ctx, p.x, p.y, baseNoteRadius * p.scale, '#ff9800', false, s.isMissed, false, currentBeat);
+            });
+
+            updateAndDrawEffects();
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
