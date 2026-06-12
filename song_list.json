@@ -6,8 +6,8 @@
     "audio": "music/music1/music1.mp3",
     "levels": [
       { "level": 1, "chart": "music/music1/chart1.json" },
-      { "level": 5, "chart": "music/music1/chart1.json" },
-      { "level": 8, "chart": "music/music1/chart1.json" }
+      { "level": 1, "chart": "music/music1/chart1.json" },
+      { "level": 1, "chart": "music/music1/chart1.json" }
     ]
   },
   {
@@ -16,7 +16,7 @@
     "artist": "AGC",
     "audio": "music/music2/music2.mp3",
     "levels": [
-      { "level": 5, "chart": "music/music2/chart2.json" }
+      { "level": 3, "chart": "music/music2/chart2.json" }
     ]
   },
   {

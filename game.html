@@ -627,7 +627,7 @@
                 sfxGainNode = audioContext.createGain();
                 
                 const musicVol = localStorage.getItem('slime_musicVol') !== null ? localStorage.getItem('slime_musicVol') : 50;
-                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 50;
+                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 30;
                 
                 musicGainNode.gain.value = parseInt(musicVol) / 100;
                 sfxGainNode.gain.value = parseInt(sfxVol) / 100;

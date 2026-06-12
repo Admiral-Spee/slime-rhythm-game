@@ -244,7 +244,7 @@
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 sfxGainNode = audioContext.createGain();
-                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 50;
+                const sfxVol = localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 30;
                 sfxGainNode.gain.value = parseInt(sfxVol) / 100;
                 sfxGainNode.connect(audioContext.destination);
             }
