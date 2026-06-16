@@ -534,13 +534,23 @@
                     ctx.lineTo(CANVAS_WIDTH, y);
                     
                     if (s === 0) {
+                        const isMeasureLine = (b % 4 === 0);
                         // 整数拍：亮色实线，写字
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = isMeasureLine ? 'rgba(255, 170, 0, 0.8)' : 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = isMeasureLine ? 3 : 2;
                         ctx.stroke();
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.font = '12px sans-serif';
-                        ctx.fillText(b, 5, y - 5);
+                        
+                        ctx.fillStyle = isMeasureLine ? 'rgba(255, 170, 0, 1)' : 'rgba(255, 255, 255, 0.6)';
+                        ctx.font = isMeasureLine ? 'bold 12px sans-serif' : '12px sans-serif';
+                        
+                        const displayBeat = (b % 4) + 1; // 转换为小节内的相对拍数 (1, 2, 3, 4)
+                        
+                        if (isMeasureLine) {
+                            const measureNum = Math.floor(b / 4) + 1;
+                            ctx.fillText(`M${measureNum} - ${displayBeat}`, 5, y - 5);
+                        } else {
+                            ctx.fillText(`${displayBeat}`, 5, y - 5);
+                        }
                     } else {
                         // 细分拍：暗色虚线
                         ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -684,10 +694,9 @@
             } else {
                 // 普通滚轮：时间轴滚动 (反转逻辑：向下滚时间后退，向上滚时间前进)
                 const currentBeat = timeToBeat(audioPlayer.currentTime * 1000);
-                const newBeat = currentBeat + (e.deltaY > 0 ? -1/SNAP : 1/SNAP);
-                if (newBeat >= 0) {
-                    audioPlayer.currentTime = beatToTime(newBeat) / 1000;
-                }
+                let newBeat = currentBeat + (e.deltaY > 0 ? -1/SNAP : 1/SNAP);
+                if (newBeat < 0) newBeat = 0;
+                audioPlayer.currentTime = beatToTime(newBeat) / 1000;
             }
         });
 
