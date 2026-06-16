@@ -361,8 +361,17 @@
         window.addEventListener('mousedown', initAudioCtx, { once: true });
         window.addEventListener('keydown', initAudioCtx, { once: true });
 
+        let lastHitSfxTime = 0;
+
         function playSfx(buffer, loop = false) {
             if (!buffer || !audioCtx) return null;
+            
+            if (!loop) {
+                const now = audioCtx.currentTime;
+                if (now - lastHitSfxTime < 0.03) return null;
+                lastHitSfxTime = now;
+            }
+
             const source = audioCtx.createBufferSource();
             source.buffer = buffer;
             source.loop = loop;

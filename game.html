@@ -1017,8 +1017,16 @@
         }
 
         // --- 音效与震动辅助函数 ---
+        let lastHitSfxTime = 0;
+
         function playSfx(buffer) {
             if (!buffer || !audioContext) return;
+            
+            const now = audioContext.currentTime;
+            // 防止双押、多押或相近时间触发导致音效重叠放大、产生相位刺耳声 (30ms内只响一次)
+            if (now - lastHitSfxTime < 0.03) return;
+            lastHitSfxTime = now;
+
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
             source.connect(sfxGainNode);
