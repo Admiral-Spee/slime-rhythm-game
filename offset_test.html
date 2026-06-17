@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title data-i18n="title">节奏史莱姆 - 延迟校准测试</title>
+    <title data-i18n="title">节奏史莱姆 - 偏移调整</title>
     <style>
         :root {
             --theme-hue: 0deg;
@@ -106,9 +106,10 @@
                 <input type="range" id="sliderOffset" min="-300" max="300" value="0" step="5">
             </div>
             <div class="instructions" data-i18n="instructions">
-                闭上眼睛听节拍，在脑海中倒数第4拍点击屏幕/空格<br>
-                <span style="color:#00ccff">蓝色: 偏快(按早了)</span> | <span style="color:#ff4444">红色: 偏慢(按晚了)</span><br>
-                调滑动条使反馈数字尽量靠近 0
+                跟随节拍声与画面进行打击，调整滑块使反馈数值尽可能归零。<br>
+                <span style="color:#00ccff">负数(蓝色): 击打偏早</span> | <span style="color:#ff4444">正数(红色): 击打偏慢</span><br>
+                如果你总是击打偏早，请增加(+)偏移值；<br>
+                如果你总是击打偏慢，请减少(-)偏移值。
             </div>
         </div>
 
@@ -126,23 +127,23 @@
         // --- 国际化 ---
         const i18n = {
             zh: { 
-                title: "节奏史莱姆 - 延迟校准测试",
+                title: "节奏史莱姆 - 偏移调整",
                 backToMenu: "返回选歌",
                 waiting: "等待加载...",
-                audioOffset: "音频偏移:",
-                instructions: '闭上眼睛听节拍，在脑海中倒数第4拍点击屏幕/空格<br><span style="color:#00ccff">蓝色: 偏快(按早了)</span> | <span style="color:#ff4444">红色: 偏慢(按晚了)</span><br>调滑动条使反馈数字尽量靠近 0',
+                audioOffset: "偏移量 (Offset):",
+                instructions: '跟随节拍声与画面进行打击，调整滑块使反馈数值尽可能归零。<br><span style="color:#00ccff">负数(蓝色): 击打偏早</span> | <span style="color:#ff4444">正数(红色): 击打偏慢</span><br>如果你总是击打偏早，请增加(+)偏移值；<br>如果你总是击打偏慢，请减少(-)偏移值。',
                 loadingSfx: "加载打拍器音效...",
-                tapToStart: "点击屏幕开始校准",
+                tapToStart: "点击屏幕开始测试",
                 loadFailed: "加载失败",
                 startTest: "开始测试",
                 pause: "暂停"
             },
             en: { 
-                title: "Slime Rhythm - Offset Test",
+                title: "Slime Rhythm - Offset Adjustment",
                 backToMenu: "Back to Menu",
                 waiting: "Loading...",
-                audioOffset: "Audio Offset:",
-                instructions: 'Close your eyes, listen to the beat, and tap on the 4th beat.<br><span style="color:#00ccff">Blue: Fast (Early)</span> | <span style="color:#ff4444">Red: Slow (Late)</span><br>Adjust the slider to make the feedback number as close to 0 as possible.',
+                audioOffset: "Offset:",
+                instructions: 'Follow the beat and visuals to tap. Adjust the slider to make the feedback close to 0.<br><span style="color:#00ccff">Negative(Blue): Tapped Early</span> | <span style="color:#ff4444">Positive(Red): Tapped Late</span><br>If you are consistently early, increase (+) the offset.<br>If you are consistently late, decrease (-) the offset.',
                 loadingSfx: "Loading metronome SFX...",
                 tapToStart: "Tap anywhere to start calibration",
                 loadFailed: "Load Failed",
@@ -520,13 +521,10 @@
             
             ctx.clearRect(0, 0, stageWidth, stageHeight);
             
-            // 核心修复：将视觉渲染时间与偏移量分离！
-            // 视觉时间：完全基于硬件绝对时间，确保下落画面与节拍器声音死锁，不随滑块变化
-            const visualTimeMs = (audioContext.currentTime - startTime) * 1000;
-            const currentBeat = visualTimeMs / 1000 / BEAT_DURATION;
-            
-            // 判定时间（仅用于计算是否漏击 Miss）：包含玩家调节的偏移量
-            const currentAudioTimeMs = visualTimeMs + audioOffsetMs;
+            // 应用偏移量：同时影响视觉画面和判定时间，使其与游戏本体逻辑完全一致
+            // 玩家拖动滑块时可以直观看到音符上下位移
+            const currentAudioTimeMs = (audioContext.currentTime - startTime) * 1000 + audioOffsetMs;
+            const currentBeat = currentAudioTimeMs / 1000 / BEAT_DURATION;
 
             // 1. 画单轨网格
             ctx.save();
