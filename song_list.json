@@ -37,5 +37,15 @@
     "levels": [
       { "level": 10, "chart": "music/music5/chart.json" }
     ]
+  },
+  {
+    "id": "6",
+    "title": "劣等上等",
+    "artist": "Giga",
+    "audio": "music/music6/music.mp3",
+    "cover": "music/music6/cover.webp",
+    "levels": [
+      { "level": 10, "chart": "music/music6/chart.json" }
+    ]
   }
 ]
