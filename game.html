@@ -261,6 +261,34 @@
         .judge-good { color: var(--text-good); animation: judgePopup 0.4s ease-out forwards; }
         .judge-miss { color: var(--text-miss); animation: judgePopup 0.4s ease-out forwards; }
 
+        /* FC/AP 动画特效 */
+        .fc-ap-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            font-size: 48px;
+            font-weight: 900;
+            font-style: italic;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 50;
+            white-space: nowrap;
+            padding: 0 20px; /* 增加水平内边距，防止斜体超出裁切边界被截断 */
+            background: linear-gradient(90deg, #ff5e5e, #ffb347, #ffde59, #85e085, #4ecdc4, #c9a0dc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
+
+        @keyframes fcApPopup {
+            0% { transform: translate(-50%, -30%); opacity: 0; }
+            15% { transform: translate(-50%, -50%); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,255,255,1)); }
+            85% { transform: translate(-50%, -60%); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); }
+            100% { transform: translate(-50%, -70%); opacity: 0; }
+        }
+
         /* 底部键位提示 */
         .key-hints {
             display: flex;
@@ -355,7 +383,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .result-stats span {
+        .result-stats span:last-child {
             font-weight: bold;
             font-family: Consolas, 'Courier New', monospace;
             font-size: 18px;
@@ -393,7 +421,8 @@
 
             <!-- 结算界面遮罩层 -->
             <div id="resultOverlay" class="overlay hidden">
-                <h2 data-i18n="gameOver">游戏结束</h2>
+                <h2 data-i18n="gameOver" style="margin-bottom: 5px;">游戏结束</h2>
+                <div id="resAutoPlayLabel" style="display: none; color: var(--text-perfect); margin-bottom: 15px; font-weight: bold; font-size: 14px;" data-i18n="autoPlayMode">自动演奏模式</div>
                 <div class="result-stats">
                     <div><span data-i18n="score">得分: </span><span id="resScore">0</span></div>
                     <div><span data-i18n="maxCombo">最大连击: </span><span id="resCombo">0</span></div>
@@ -416,6 +445,9 @@
 
             <!-- 动态判定提示 -->
             <div id="judgeDisplay" class="judge-display">PERFECT</div>
+
+            <!-- 增加全连/全P判定特效 -->
+            <div id="fcApDisplay" class="fc-ap-display" style="display: none;">FULL COMBO</div>
 
             <canvas id="gameCanvas"></canvas>
 
@@ -451,6 +483,7 @@
                 decoding: "解码中...",
                 resume: "继续游戏",
                 pause: "暂停游戏",
+                autoPlayMode: "自动演奏模式"
             },
             en: {
                 backToMenu: "Back to Menu",
@@ -466,6 +499,7 @@
                 decoding: "Decoding...",
                 resume: "Resume",
                 pause: "Pause",
+                autoPlayMode: "AutoPlay Mode"
             }
         };
 
@@ -541,6 +575,7 @@
         let judgments = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
         let isSongEnding = false;
         let songEndingTimeout = null;
+        let fcApShown = false;
         let holdAudioSources = [null, null, null, null]; // 存储长按音效循环源
         
         let isAutoPlay = localStorage.getItem('slime_autoPlay') === 'true';
@@ -733,7 +768,9 @@
                 songEndingTimeout = null;
             }
             isSongEnding = false;
+            fcApShown = false;
             for (let i = 0; i < 4; i++) stopHoldSfx(i);
+            document.getElementById('fcApDisplay').style.display = 'none';
 
             document.querySelectorAll('.key-box').forEach(el => el.classList.remove('active'));
             updateHUD();
@@ -902,8 +939,15 @@
             document.getElementById('resGood').textContent = judgments.GOOD;
             document.getElementById('resMiss').textContent = judgments.MISS;
             
+            if (isAutoPlay) {
+                document.getElementById('resAutoPlayLabel').style.display = 'block';
+            } else {
+                document.getElementById('resAutoPlayLabel').style.display = 'none';
+            }
+            
             document.getElementById('resultOverlay').classList.remove('hidden');
             btnBackToMenu.style.display = 'none';
+            document.getElementById('fcApDisplay').style.display = 'none';
         }
 
         document.getElementById('btnResultBack').addEventListener('click', () => {
@@ -1667,17 +1711,39 @@
             // 5. 更新爆炸粒子效果
             updateAndDrawEffects();
 
-            // 5. 检查歌曲是否结束
+            // 5.5 检查是否触发 FC / AP (最后一个音符后 2 拍)
+            const lastNote = chartNotes.length > 0 ? chartNotes[chartNotes.length - 1] : null;
+            const lastNoteBeat = lastNote ? (lastNote.endBeat || lastNote.beat) : 0;
+            
+            if (lastNote && !fcApShown && currentBeat >= lastNoteBeat + 2) {
+                fcApShown = true;
+                const totalHits = judgments.PERFECT + judgments.GREAT + judgments.GOOD + judgments.MISS;
+                if (totalHits > 0 && judgments.MISS === 0) {
+                    const fcApDisplay = document.getElementById('fcApDisplay');
+                    fcApDisplay.style.display = 'block';
+                    fcApDisplay.style.animation = 'none';
+                    void fcApDisplay.offsetWidth; // 触发重绘重置动画
+                    fcApDisplay.style.animation = 'fcApPopup 2.5s ease-out forwards';
+                    
+                    if (judgments.GREAT === 0 && judgments.GOOD === 0) {
+                        fcApDisplay.textContent = 'ALL PERFECT';
+                    } else {
+                        fcApDisplay.textContent = 'FULL COMBO';
+                    }
+                }
+            }
+
+            // 6. 检查歌曲是否结束
             if (loadedAudioBuffer) {
                 const lastNoteTime = chartNotes.length > 0 ? 
                     (chartNotes[chartNotes.length - 1].endTimeMs || chartNotes[chartNotes.length - 1].timeMs) / 1000 
                     : 0;
-                // 留出1秒的判定缓冲时间
-                const songDuration = Math.max(loadedAudioBuffer.duration, lastNoteTime + 1);
+                // 留出一定的时间确保最后的动画播完
+                const songDuration = Math.max(loadedAudioBuffer.duration, lastNoteTime + 3);
                 
                 if (currentAudioTimeSec >= songDuration && !isSongEnding) {
                     isSongEnding = true;
-                    songEndingTimeout = setTimeout(showResultScreen, 1000);
+                    songEndingTimeout = setTimeout(showResultScreen, 500);
                 }
             }
 
