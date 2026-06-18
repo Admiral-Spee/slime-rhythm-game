@@ -277,6 +277,7 @@
             white-space: nowrap;
             padding: 0 20px; /* 增加水平内边距，防止斜体超出裁切边界被截断 */
             background: linear-gradient(90deg, #ff5e5e, #ffb347, #ffde59, #85e085, #4ecdc4, #c9a0dc);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
@@ -678,7 +679,9 @@
             great: null,
             good: null,
             empty: null,
-            long: null
+            long: null,
+            all_perfect: null,
+            full_combo: null
         };
 
         async function fetchAudioAsArrayBuffer(url) {
@@ -710,7 +713,9 @@
                     fetchAudioAsArrayBuffer('sfx/great.mp3').then(b => audioArrayBuffers.great = b),
                     fetchAudioAsArrayBuffer('sfx/good.mp3').then(b => audioArrayBuffers.good = b),
                     fetchAudioAsArrayBuffer('sfx/empty.mp3').then(b => audioArrayBuffers.empty = b),
-                    fetchAudioAsArrayBuffer('sfx/long.mp3').then(b => audioArrayBuffers.long = b)
+                    fetchAudioAsArrayBuffer('sfx/long.mp3').then(b => audioArrayBuffers.long = b),
+                    fetchAudioAsArrayBuffer('sfx/all_perfect.mp3').then(b => audioArrayBuffers.all_perfect = b),
+                    fetchAudioAsArrayBuffer('sfx/full_combo.mp3').then(b => audioArrayBuffers.full_combo = b)
                 ];
                 
                 await Promise.all([
@@ -728,6 +733,8 @@
                 sfxBuffers.good = await decodeAudioSafe(audioArrayBuffers.good);
                 sfxBuffers.empty = await decodeAudioSafe(audioArrayBuffers.empty);
                 sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
+                sfxBuffers.all_perfect = await decodeAudioSafe(audioArrayBuffers.all_perfect);
+                sfxBuffers.full_combo = await decodeAudioSafe(audioArrayBuffers.full_combo);
                 
                 loadedAudioBuffer = await decodeAudioSafe(audioArrayBuffers.music);
                 
@@ -1723,12 +1730,14 @@
                     fcApDisplay.style.display = 'block';
                     fcApDisplay.style.animation = 'none';
                     void fcApDisplay.offsetWidth; // 触发重绘重置动画
-                    fcApDisplay.style.animation = 'fcApPopup 2.5s ease-out forwards';
+                    fcApDisplay.style.animation = 'fcApPopup 5s ease-out forwards';
                     
                     if (judgments.GREAT === 0 && judgments.GOOD === 0) {
                         fcApDisplay.textContent = 'ALL PERFECT';
+                        playSfx(sfxBuffers.all_perfect);
                     } else {
                         fcApDisplay.textContent = 'FULL COMBO';
+                        playSfx(sfxBuffers.full_combo);
                     }
                 }
             }
@@ -1738,8 +1747,8 @@
                 const lastNoteTime = chartNotes.length > 0 ? 
                     (chartNotes[chartNotes.length - 1].endTimeMs || chartNotes[chartNotes.length - 1].timeMs) / 1000 
                     : 0;
-                // 留出一定的时间确保最后的动画播完
-                const songDuration = Math.max(loadedAudioBuffer.duration, lastNoteTime + 3);
+                // 留出足够的时间确保 5 秒的动画完整播完
+                const songDuration = Math.max(loadedAudioBuffer.duration, lastNoteTime + 7);
                 
                 if (currentAudioTimeSec >= songDuration && !isSongEnding) {
                     isSongEnding = true;
