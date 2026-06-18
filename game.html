@@ -1287,7 +1287,7 @@
                     scaleY = 1.0; scaleX = 1.0;
                 }
             } else {
-                // 下落的音符蠕动动画，绑定到游戏BPM和节拍（一拍一次完整呼吸）
+                // 下落的音符蠕动动画，改为与自身距离判定线的节拍挂钩
                 const pulse = Math.cos(currentBeat * Math.PI * 2) * 0.15;
                 scaleX = 1 + pulse;
                 scaleY = 1 - pulse;
@@ -1316,12 +1316,14 @@
                 
                 ctx.shadowBlur = isReceptor ? 20 : 12;
                 ctx.shadowColor = color;
-                ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2 - radius * 0.2, drawWidth, drawHeight);
+                ctx.drawImage(img, -drawWidth / 2, -drawHeight, drawWidth, drawHeight); // 改为底边贴合网格线绘制
                 
                 ctx.shadowBlur = 0;
                 if (isMissed) ctx.filter = 'none';
                 ctx.globalAlpha = 1.0;
             } else {
+            // 将原生史莱姆的锚点移到底部中心（原底边偏下大约 radius * 0.9）
+            ctx.translate(0, -radius * 0.9);
             // 1. 绘制带有渐变和霓虹外发光的史莱姆身体
             ctx.shadowBlur = isReceptor ? 20 : 12;
             ctx.shadowColor = color;
@@ -1425,18 +1427,18 @@
 
         // 获取平滑或带跳跃感的动画拍数
         function getDisplayRemBeats(noteBeat, currentBeat) {
-            const floorBeat = Math.floor(currentBeat);
-            const fractionalBeat = currentBeat - floorBeat;
+            const remBeats = noteBeat - currentBeat;
+            const floorRem = Math.floor(remBeats);
+            const fractionalRem = remBeats - floorRem;
             const transitionDuration = 0.2;
-            const transitionStart = 1.0 - transitionDuration;
             
-            let displayCurrentBeat = floorBeat;
-            if (fractionalBeat >= transitionStart) {
-                const progress = (fractionalBeat - transitionStart) / transitionDuration;
-                displayCurrentBeat += 1 - Math.pow(1 - progress, 2);
+            let displayRem = floorRem + 1;
+            if (fractionalRem <= transitionDuration) {
+                const progress = (transitionDuration - fractionalRem) / transitionDuration;
+                displayRem -= 1 - Math.pow(1 - progress, 2);
             }
             
-            return Math.max(0, noteBeat - displayCurrentBeat);
+            return Math.max(0, displayRem);
         }
 
         // --- 主渲染与物理时钟循环 ---
@@ -1641,7 +1643,7 @@
                 // 收集音符头部史莱姆实体
                 if (displayStart <= VISIBLE_BEATS && remBeats > -1) {
                     if (note.hitState === 0 || note.hitState === 3) {
-                        slimesToDraw.push({ lane: note.lane, depth: displayStart, isMissed: note.hitState === 3, scale: 1.0 });
+                        slimesToDraw.push({ lane: note.lane, depth: displayStart, isMissed: note.hitState === 3, scale: 1.0, remBeats: remBeats });
                     }
                 }
 
@@ -1649,7 +1651,7 @@
                 if (note.endBeat && (note.hitState === 0 || note.hitState === 3 || note.hitState === 5)) {
                     const endRemBeats = note.endBeat - currentBeat;
                     if (displayEnd <= VISIBLE_BEATS && endRemBeats > -1) {
-                        slimesToDraw.push({ lane: note.lane, depth: displayEnd, isMissed: note.hitState === 3, scale: 0.8 });
+                        slimesToDraw.push({ lane: note.lane, depth: displayEnd, isMissed: note.hitState === 3, scale: 0.8, remBeats: endRemBeats });
                     }
                 }
             }
@@ -1659,7 +1661,7 @@
             slimesToDraw.forEach(s => {
                 const { x, y, sizeFactor } = projectPerspective(s.lane, s.depth);
                 const dynamicRadius = baseNoteRadius * sizeFactor * s.scale;
-                drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[s.lane], false, s.isMissed, false, currentBeat, s.lane);
+                drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[s.lane], false, s.isMissed, false, s.remBeats, s.lane);
             });
 
             // 5. 更新爆炸粒子效果

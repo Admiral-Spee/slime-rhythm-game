@@ -417,17 +417,23 @@
 
             // 初始化定位
             setTimeout(() => {
+                const savedIdx = parseInt(localStorage.getItem('slime_lastSelectedSongIdx'));
+                const initialIdx = (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < allSongsData.length) ? savedIdx : 0;
+                
                 const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
-                const targetCard = listContainer.children[middleGroupStartIndex];
+                const targetCard = listContainer.children[middleGroupStartIndex + initialIdx];
                 if (targetCard) {
                     isScrollingProgrammatically = true;
                     listContainer.style.scrollSnapType = 'none';
+                    
+                    // 先执行选中逻辑以展开顶部详情面板，确保列表容器高度变为最终的真实高度
+                    selectedIndex = initialIdx;
+                    selectSongForDetail(allSongsData[initialIdx], targetCard);
+                    
                     targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
                     setTimeout(() => {
                         listContainer.style.scrollSnapType = 'y mandatory';
                         isScrollingProgrammatically = false;
-                        selectedIndex = 0;
-                        selectSongForDetail(allSongsData[0], targetCard);
                     }, 50);
                 }
             }, 50);
@@ -490,6 +496,8 @@
         function selectSongForDetail(song, centerCardElement) {
             document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
             if (centerCardElement) centerCardElement.classList.add('selected');
+            
+            localStorage.setItem('slime_lastSelectedSongIdx', selectedIndex);
             
             document.getElementById('songDetailTop').style.display = 'flex';
             document.getElementById('detailCover').src = song.cover || DEFAULT_COVER;

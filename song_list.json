@@ -1,22 +1,11 @@
 [
   {
-    "id": "1",
-    "title": "Test Music 1",
-    "artist": "AGC",
-    "audio": "music/music1/music1.mp3",
-    "levels": [
-      { "level": 1, "chart": "music/music1/chart1.json" },
-      { "level": 1, "chart": "music/music1/chart1.json" },
-      { "level": 1, "chart": "music/music1/chart1.json" }
-    ]
-  },
-  {
     "id": "2",
-    "title": "Test Music 2",
-    "artist": "AGC",
+    "title": "Test Music",
+    "artist": "AIGC",
     "audio": "music/music2/music2.mp3",
     "levels": [
-      { "level": 3, "chart": "music/music2/chart2.json" }
+      { "level": 2, "chart": "music/music2/chart2.json" }
     ]
   },
   {
@@ -37,6 +26,16 @@
     "cover": "music/music4/cover.webp",
     "levels": [
       { "level": 8, "chart": "music/music4/chart.json" }
+    ]
+  },
+  {
+    "id": "5",
+    "title": "Connecting",
+    "artist": "halyosy",
+    "audio": "music/music5/music.mp3",
+    "cover": "music/music5/cover.webp",
+    "levels": [
+      { "level": 10, "chart": "music/music5/chart.json" }
     ]
   }
 ]
