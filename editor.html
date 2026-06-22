@@ -136,6 +136,100 @@
         canvas {
             background: #051324;
             cursor: crosshair;
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        /* 移动端竖屏提示蒙层 */
+        .portrait-prompt {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #051324;
+            color: #b3dfff;
+            z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .prompt-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .phone-icon {
+            font-size: 64px;
+            animation: rotatePhone 2s ease-in-out infinite;
+        }
+        .prompt-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00f2ff;
+            line-height: 1.5;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* 移动端横屏适配样式 */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 220px;
+                padding: 10px;
+                gap: 10px;
+            }
+            .panel {
+                padding: 6px;
+                border-radius: 6px;
+            }
+            .panel-title {
+                font-size: 12px;
+                margin-bottom: 6px;
+                padding-bottom: 3px;
+            }
+            .control-row {
+                font-size: 11px;
+                margin-bottom: 4px;
+            }
+            button, .file-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            input[type="number"], select {
+                padding: 2px;
+                width: 60px;
+                font-size: 11px;
+            }
+            .radio-group {
+                gap: 2px;
+            }
+            p[data-i18n="hints"] {
+                display: none !important;
+            }
+            .audio-controls {
+                padding: 5px 10px;
+                gap: 10px;
+            }
+            audio {
+                height: 24px;
+            }
+            .status-bar {
+                bottom: 10px;
+                left: 10px;
+                padding: 6px;
+                font-size: 10px;
+            }
         }
         
         .status-bar {
@@ -153,11 +247,20 @@
 </head>
 <body>
 
+    <!-- 移动端竖屏提示蒙层 -->
+    <div id="portrait-prompt" class="portrait-prompt">
+        <div class="prompt-content">
+            <div class="phone-icon">📱</div>
+            <div class="prompt-text" data-i18n="portraitTip">请旋转设备至横屏状态以使用编辑器</div>
+        </div>
+    </div>
+
     <!-- 左侧控制面板 -->
     <div class="sidebar">
         <div class="panel">
-            <div class="control-row" style="margin-bottom: 0;">
-                <button id="btnBackToGame" style="background: #28a745; width: 100%; font-size: 13px; font-weight: bold;" data-i18n="backToGame">返回游戏</button>
+            <div class="control-row" style="margin-bottom: 0; display: flex; gap: 8px;">
+                <button id="btnBackToGame" style="background: #28a745; flex: 1; font-size: 13px; font-weight: bold;" data-i18n="backToGame">返回游戏</button>
+                <button id="btnToggleFullscreen" style="background: #17a2b8; font-size: 13px; font-weight: bold;" data-i18n="fullScreen">全屏</button>
             </div>
         </div>
 
@@ -209,6 +312,7 @@
                 <div class="radio-group" id="noteTypeGroup">
                     <button class="radio-btn active" data-val="short" data-i18n="modeShort">短按 (Click)</button>
                     <button class="radio-btn" data-val="long" data-i18n="modeLong">长按 (Drag)</button>
+                    <button class="radio-btn" data-val="delete" data-i18n="modeDelete" style="border-color: #c1121f;">删除 (Delete)</button>
                 </div>
             </div>
             <div class="control-row">
@@ -294,6 +398,8 @@
                 inputMode: "输入模式:",
                 modeShort: "短按 (Click)",
                 modeLong: "长按 (Drag)",
+                modeDelete: "删除 (Delete)",
+                portraitTip: "请旋转设备至横屏状态以使用编辑器",
                 hints: "* 鼠标左键：添加音符<br>* 鼠标右键：删除音符<br>* 鼠标滚轮：调整时间轴<br>* 空格键：播放/暂停<br>* 鼠标滚轮+Ctrl：缩放轨道",
                 musicVol: "音乐音量",
                 sfxVol: "音效音量",
@@ -311,6 +417,8 @@
                 feverStart: "起始",
                 feverEnd: "结束",
                 backToGame: "返回游戏",
+                fullScreen: "全屏",
+                exitFullScreen: "退出全屏",
                 quickSelect: "快捷载入歌曲",
                 chooseOfficialSong: "-- 选择歌曲 --"
             },
@@ -330,6 +438,8 @@
                 inputMode: "Input Mode:",
                 modeShort: "Short (Click)",
                 modeLong: "Long (Drag)",
+                modeDelete: "Delete",
+                portraitTip: "Please rotate your device to landscape mode to use the editor",
                 hints: "* Left Click: Add Note<br>* Right Click: Delete Note<br>* Mouse Wheel: Scroll Time<br>* Space: Play/Pause<br>* Mouse Wheel + Ctrl: Zoom Lane",
                 musicVol: "Music Vol",
                 sfxVol: "SFX Vol",
@@ -347,6 +457,8 @@
                 feverStart: "Start",
                 feverEnd: "End",
                 backToGame: "Back to Game",
+                fullScreen: "Fullscreen",
+                exitFullScreen: "Exit Full",
                 quickSelect: "Quick Load Song",
                 chooseOfficialSong: "-- Choose Song --"
             }
@@ -388,6 +500,15 @@
         let lastRenderTime = performance.now();
 
         function updateUIi18n() {
+            const fsBtn = document.getElementById('btnToggleFullscreen');
+            if (fsBtn) {
+                if (isFullscreen()) {
+                    fsBtn.setAttribute('data-i18n', 'exitFullScreen');
+                } else {
+                    fsBtn.setAttribute('data-i18n', 'fullScreen');
+                }
+            }
+
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (i18n[currentLang][key]) el.innerHTML = i18n[currentLang][key];
@@ -846,6 +967,169 @@
             mouseBeat = getQuantizedBeat(pos.y);
         });
 
+        // --- 触屏事件适配（映射到鼠标事件、手势滑动及双指缩放） ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartBeat = 0;
+        let isTouchScrolling = false;
+        let isPinching = false;
+        let startPinchDist = 0;
+        let startZoom = BEAT_HEIGHT;
+        let hasTouchMoved = false;
+        let isCanvasTouchActive = false; // 新增标志：判定 touch 触点是否起始于 canvas 内
+
+        function getTouchCanvasPos(touch) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (touch.clientX - rect.left) * scaleX,
+                y: (touch.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isCanvasTouchActive = true; // 触点起始于 canvas
+            if (e.touches.length === 1) {
+                // 单指触摸：记录初始位置和时间轴
+                const pos = getTouchCanvasPos(e.touches[0]);
+                touchStartX = pos.x;
+                touchStartY = pos.y;
+                touchStartBeat = timeToBeat(smoothAudioTime * 1000);
+                isTouchScrolling = false;
+                hasTouchMoved = false;
+            } else if (e.touches.length === 2) {
+                // 双指触摸：开始缩放，取消所有单指拖拽状态
+                isPinching = true;
+                isTouchScrolling = false;
+                hasTouchMoved = true;
+                if (isDragging) {
+                    isDragging = false;
+                    dragStartNote = null;
+                }
+                const p1 = e.touches[0];
+                const p2 = e.touches[1];
+                startPinchDist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                startZoom = BEAT_HEIGHT;
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isCanvasTouchActive) return; // 如果不是起始于 canvas 的 touch，不处理
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const pos = getTouchCanvasPos(e.touches[0]);
+                const dx = pos.x - touchStartX;
+                const dy = pos.y - touchStartY;
+                const dist = Math.hypot(dx, dy);
+
+                if (!hasTouchMoved && dist > 10) {
+                    hasTouchMoved = true;
+                    // 如果不是 'long' 模式，或者滑动的初始触摸点是在轨道外面（左/右两侧空白处）
+                    // 轨道范围：TRACK_OFFSET_X (100px) 到 TRACK_OFFSET_X + CANVAS_WIDTH (500px)
+                    const isOutsideTrack = (touchStartX < TRACK_OFFSET_X || touchStartX > TRACK_OFFSET_X + CANVAS_WIDTH);
+                    if (currentNoteType !== 'long' || isOutsideTrack) {
+                        isTouchScrolling = true;
+                    } else {
+                        // 在 'long' 模式下轨道内滑动，触发模拟鼠标 mousedown，准备绘制长按
+                        isTouchScrolling = false;
+                        const mouseEvent = new MouseEvent('mousedown', {
+                            clientX: e.touches[0].clientX,
+                            clientY: e.touches[0].clientY,
+                            button: 0
+                        });
+                        canvas.dispatchEvent(mouseEvent);
+                    }
+                }
+
+                if (hasTouchMoved) {
+                    if (isTouchScrolling) {
+                        // 轨道滑动滚动时间轴：
+                        // 手指向上滑动（dy为负），在常见的“音轨拉动”逻辑里应该将下方的音符“拉上来”，也就是时间向前进行（beat 变大）。
+                        // 如果用户觉得方向反了，说明他们期望的滚动方式是：手指向上滑动（dy为负）时，看到的是时间变小（回到前面）；手指下滑，时间前进。
+                        // 这里将减号 `-` 改为加号 `+`
+                        let targetBeat = touchStartBeat + (dy / BEAT_HEIGHT);
+                        if (targetBeat < 0) targetBeat = 0;
+                        audioPlayer.currentTime = beatToTime(targetBeat) / 1000;
+                        
+                        // 更新鼠标当前的估算值，用于状态栏显示
+                        mouseLane = Math.max(0, Math.min(3, Math.floor((pos.x - TRACK_OFFSET_X) / (CANVAS_WIDTH / 4))));
+                        mouseBeat = getQuantizedBeat(pos.y);
+                    } else {
+                        // 绘制长条：分发常规鼠标移动事件
+                        const mouseEvent = new MouseEvent('mousemove', {
+                            clientX: e.touches[0].clientX,
+                            clientY: e.touches[0].clientY,
+                            button: 0
+                        });
+                        canvas.dispatchEvent(mouseEvent);
+                    }
+                }
+            } else if (e.touches.length === 2 && isPinching) {
+                // 双指捏合/张开：缩放轨道
+                const p1 = e.touches[0];
+                const p2 = e.touches[1];
+                const currentDist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                if (startPinchDist > 5) {
+                    const ratio = currentDist / startPinchDist;
+                    let newZoom = startZoom * ratio;
+                    newZoom = Math.max(50, Math.min(600, newZoom)); // 限制缩放范围在 50~600 像素/拍
+                    BEAT_HEIGHT = newZoom;
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if (!isCanvasTouchActive) return; // 如果起初不是在 canvas 上的触摸，直接返回，绝不分发给 canvas
+            
+            if (isPinching) {
+                if (e.touches.length < 2) {
+                    isPinching = false;
+                    isCanvasTouchActive = false;
+                }
+                return;
+            }
+
+            if (!hasTouchMoved) {
+                // 如果没有产生明显位移，则判定为单纯的轻点 (Tap)
+                // 模拟一次完整的点击 (mousedown -> mouseup)
+                if (e.changedTouches.length > 0) {
+                    const touch = e.changedTouches[0];
+                    const downEvent = new MouseEvent('mousedown', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        button: 0
+                    });
+                    canvas.dispatchEvent(downEvent);
+
+                    const upEvent = new MouseEvent('mouseup', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        button: 0
+                    });
+                    window.dispatchEvent(upEvent);
+                }
+            } else {
+                if (isTouchScrolling) {
+                    isTouchScrolling = false;
+                } else if (isDragging) {
+                    // 如果正在拖拽长按音符，分发 mouseup
+                    if (e.changedTouches.length > 0) {
+                        const touch = e.changedTouches[0];
+                        const mouseEvent = new MouseEvent('mouseup', {
+                            clientX: touch.clientX,
+                            clientY: touch.clientY,
+                            button: 0
+                        });
+                        window.dispatchEvent(mouseEvent);
+                    }
+                }
+            }
+            hasTouchMoved = false;
+            isCanvasTouchActive = false; // 重置 canvas 触摸激活状态
+        });
+
         canvas.addEventListener('mousedown', (e) => {
             if (e.button !== 0 && e.button !== 2) return;
             e.preventDefault();
@@ -856,8 +1140,8 @@
             mouseLane = Math.max(0, Math.min(3, Math.floor(laneX / (CANVAS_WIDTH / 4))));
             mouseBeat = getQuantizedBeat(pos.y);
 
-            if (e.button === 2) { // 右键删除
-                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.05));
+            if (e.button === 2 || currentNoteType === 'delete') { // 右键删除或处于删除模式下左键删除
+                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.15)); // 触控删除调大到 0.15 拍，更容易点中
                 return;
             }
 
@@ -995,7 +1279,18 @@
 
         // 初始化
         document.getElementById('btnBackToGame').addEventListener('click', () => {
-            window.location.href = 'index.html';
+            tryExitFullscreen();
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 100);
+        });
+
+        document.getElementById('btnToggleFullscreen').addEventListener('click', () => {
+            if (isFullscreen()) {
+                exitFullscreen();
+            } else {
+                requestFullscreen(document.documentElement);
+            }
         });
 
         // 载入官方歌曲列表逻辑
@@ -1023,9 +1318,77 @@
             audioPlayer.src = e.target.value;
         });
 
+        // --- 移动端横竖屏适配与全屏逻辑 ---
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                || (window.innerWidth <= 1024 && 'ontouchstart' in window);
+        }
+
+        function requestFullscreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+
+        function isFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        }
+
+        function tryExitFullscreen() {
+            if (isFullscreen()) {
+                exitFullscreen();
+            }
+        }
+
+        function handleOrientationAndFullscreen() {
+            const prompt = document.getElementById('portrait-prompt');
+            if (isMobileDevice()) {
+                if (window.innerHeight > window.innerWidth) {
+                    // 竖屏状态：显示黑屏提示，并自动退出全屏
+                    prompt.style.display = 'flex';
+                    tryExitFullscreen();
+                } else {
+                    // 横屏状态：隐藏黑屏提示，不再自动进入全屏
+                    prompt.style.display = 'none';
+                }
+            } else {
+                // 非移动端：不进行竖屏黑屏提示
+                prompt.style.display = 'none';
+            }
+        }
+
+        // 监听屏幕尺寸和方向改变
+        window.addEventListener('resize', handleOrientationAndFullscreen);
+        window.addEventListener('orientationchange', handleOrientationAndFullscreen);
+
+        // 监听全屏状态变化，自动更新全屏按钮文本
+        document.addEventListener('fullscreenchange', updateUIi18n);
+        document.addEventListener('webkitfullscreenchange', updateUIi18n);
+        document.addEventListener('mozfullscreenchange', updateUIi18n);
+        document.addEventListener('MSFullscreenChange', updateUIi18n);
+
         loadOfficialSongList();
         updateUIi18n();
         updateTimingPoints();
+        handleOrientationAndFullscreen(); // 初始化横竖屏检测
         requestAnimationFrame(render);
     </script>
 </body>
