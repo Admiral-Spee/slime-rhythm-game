@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>节奏史莱姆 - 歌曲选择</title>
     <style>
-         :root {
+        :root {
             --theme-hue: 0deg;
             --bg-color: hsl(calc(215deg + var(--theme-hue)), 45%, 12%);
             --text-main: #fff;
@@ -36,33 +37,72 @@
             --setting-bg: rgba(255, 255, 255, 0.8);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; min-height: 100dvh; transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .bg-glow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: radial-gradient(circle at 50% 30%, hsl(calc(204deg + var(--theme-hue)), 40%, 28%) 0%, var(--bg-color) 70%);
-            transition: background 0.3s; z-index: -2;
+            transition: background 0.3s;
+            z-index: -2;
         }
-        body.light-mode .bg-glow { background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%); }
+
+        body.light-mode .bg-glow {
+            background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%);
+        }
 
         .stars {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
-            background-size: 550px 550px, 350px 350px; opacity: 0.4; z-index: -1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px), radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            opacity: 0.4;
+            z-index: -1;
         }
-        body.light-mode .stars { opacity: 0.9; filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5)); }
+
+        body.light-mode .stars {
+            opacity: 0.9;
+            filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5));
+        }
 
         .menu-container {
-            position: relative; width: 100%; max-width: 500px; height: 90vh; max-height: 850px;
-            display: flex; flex-direction: column; background: var(--container-bg);
-            border: 2px solid var(--border-main); border-radius: 15px; box-shadow: 0 0 30px var(--border-sub); overflow: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            max-height: 850px;
+            display: flex;
+            flex-direction: column;
+            background: var(--container-bg);
+            border: 2px solid var(--border-main);
+            border-radius: 15px;
+            box-shadow: 0 0 30px var(--border-sub);
+            overflow: hidden;
         }
 
         .btn {
@@ -81,35 +121,100 @@
             align-items: center;
             justify-content: center;
         }
-        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+
+        .btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+        }
 
         /* 遮罩与设置界面样式 */
         .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--overlay-bg); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; padding: 30px;
-            text-align: center; z-index: 20; transition: opacity 0.3s;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            z-index: 20;
+            transition: opacity 0.3s;
         }
-        .overlay.hidden { opacity: 0; pointer-events: none; }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .overlay h2 {
-            font-size: 24px; color: #e9af01; margin-bottom: 15px;
-            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+            font-size: 24px;
+            color: #e9af01;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
         }
+
         .settings-row {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; margin-bottom: 20px; font-size: 14px; color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-main);
         }
-        .settings-row input[type="range"] { width: 50%; cursor: pointer; }
+
+        .settings-row input[type="range"] {
+            width: 50%;
+            cursor: pointer;
+        }
+
         .shortcut-info {
-            background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px;
-            border: 1px solid var(--border-sub); margin-bottom: 25px; font-size: 13px;
-            color: #b300b3; box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-sub);
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #b300b3;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
         }
+
         /* 选歌界面专有样式 */
-        .song-select-container { display: flex; flex-direction: column; width: 100%; flex: 1; overflow: hidden; gap: 15px; }
-        .song-detail-top { flex: 1; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(5px, 2vh, 15px); }
-        .detail-cover { width: clamp(60px, 12vh, 110px); height: clamp(60px, 12vh, 110px); aspect-ratio: 1/1; border-radius: 12px; background: #fff; object-fit: cover; margin-bottom: clamp(4px, 1vh, 8px); box-shadow: 0 0 8px rgba(0,0,0,0.5); flex-shrink: 0; }
-        
+        .song-select-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            flex: 1;
+            overflow: hidden;
+            gap: 15px;
+        }
+
+        .song-detail-top {
+            flex: 1;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(5px, 2vh, 15px);
+        }
+
+        .detail-cover {
+            width: clamp(60px, 12vh, 110px);
+            height: clamp(60px, 12vh, 110px);
+            aspect-ratio: 1/1;
+            border-radius: 12px;
+            background: #fff;
+            object-fit: cover;
+            margin-bottom: clamp(4px, 1vh, 8px);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
         /* 限制歌曲名宽度，超出自动滚动 */
         .detail-title-container {
             width: 80%;
@@ -118,66 +223,288 @@
             position: relative;
             margin-bottom: 2px;
             display: flex;
-            justify-content: flex-start; /* 当需要滚动时必须从最左边开始 */
+            justify-content: flex-start;
+            /* 当需要滚动时必须从最左边开始 */
         }
+
         .detail-title {
             font-size: clamp(16px, 2.5vh, 22px);
             font-weight: bold;
             white-space: nowrap;
             text-align: center;
             display: inline-block;
-            width: 100%; /* 默认静止状态下宽度充满，便于通过 text-align: center 居中 */
+            width: 100%;
+            /* 默认静止状态下宽度充满，便于通过 text-align: center 居中 */
         }
+
         @keyframes marquee {
-            0% { transform: translate3d(0, 0, 0); }
-            10% { transform: translate3d(0, 0, 0); }
-            45% { transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0); }
-            55% { transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0); }
-            90% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(0, 0, 0); }
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            10% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            45% {
+                transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0);
+            }
+
+            55% {
+                transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0);
+            }
+
+            90% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
         }
+
         .detail-title.scroll-active {
             text-align: left;
-            width: auto; /* 激活滚动时必须设为自适应内容宽度，使 -100% 能代表真实的文本总宽 */
+            width: auto;
+            /* 激活滚动时必须设为自适应内容宽度，使 -100% 能代表真实的文本总宽 */
             animation: marquee 8s linear infinite;
         }
-        
-        .detail-artist { font-size: clamp(12px, 1.8vh, 14px); color: var(--text-sub); margin-bottom: clamp(6px, 1.5vh, 12px); text-align: center; width: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .difficulty-selector { display: flex; gap: 12px; max-width: 350px; overflow-x: auto; padding: 5px 10px; justify-content: center; flex-shrink: 0; margin-bottom: 5px; }
-        .difficulty-selector::-webkit-scrollbar { display: none; }
-        .diff-btn { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); border-radius: 50%; background: transparent; border: 2px solid var(--text-sub); color: var(--text-sub); display: flex; justify-content: center; align-items: center; font-size: clamp(12px, 2vh, 16px); font-weight: bold; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .diff-btn:hover { border-color: var(--text-main); color: var(--text-main); }
-        .diff-btn.selected { background: var(--btn-bg); border-color: var(--btn-bg); color: white; }
 
-        .song-list-bottom { flex: 1; overflow-y: auto; padding: 10px 0 20px 0; display: flex; flex-direction: column; gap: 10px; scroll-snap-type: y mandatory; scrollbar-width: none; }
-        .song-list-bottom::-webkit-scrollbar { display: none; }
-        .song-card { background: var(--card-bg); border: 2px solid var(--border-sub); border-radius: 10px; padding: 10px 15px; margin: 0 25px; display: flex; align-items: center; transition: all 0.2s; scroll-snap-align: center; cursor: pointer; }
-        .song-card.selected { background: var(--border-sub); transform: scale(1.02); box-shadow: 0 0 10px var(--border-active); }
-        .song-card:hover:not(.selected) { background: var(--border-sub); }
-        .song-thumb { width: 40px; height: 40px; border-radius: 8px; background: #fff; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
-        .song-info { flex: 1; overflow: hidden; }
-        .song-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-artist { font-size: 12px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-diffs { display: flex; gap: 5px; justify-content: flex-end; }
-        .diff-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--btn-bg); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; }
+        .detail-artist {
+            font-size: clamp(12px, 1.8vh, 14px);
+            color: var(--text-sub);
+            margin-bottom: clamp(6px, 1.5vh, 12px);
+            text-align: center;
+            width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 12px;
+            max-width: 350px;
+            overflow-x: auto;
+            padding: 5px 10px;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-bottom: 5px;
+        }
+
+        .difficulty-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .diff-btn {
+            width: clamp(30px, 5vh, 40px);
+            height: clamp(30px, 5vh, 40px);
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid var(--text-sub);
+            color: var(--text-sub);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(12px, 2vh, 16px);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .diff-btn:hover {
+            border-color: var(--text-main);
+            color: var(--text-main);
+        }
+
+        .diff-btn.selected {
+            background: var(--btn-bg);
+            border-color: var(--btn-bg);
+            color: white;
+        }
+
+        .song-list-bottom {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+
+        .song-list-bottom::-webkit-scrollbar {
+            display: none;
+        }
+
+        .song-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-sub);
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin: 0 25px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            scroll-snap-align: center;
+            cursor: pointer;
+        }
+
+        .song-card.selected {
+            background: var(--border-sub);
+            transform: scale(1.02);
+            box-shadow: 0 0 10px var(--border-active);
+        }
+
+        .song-card:hover:not(.selected) {
+            background: var(--border-sub);
+        }
+
+        .song-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #fff;
+            object-fit: cover;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .song-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-artist {
+            font-size: 12px;
+            color: var(--text-sub);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-diffs {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        .diff-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--btn-bg);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
 
         @media (max-width: 600px) {
-            .menu-container { max-width: 100%; height: 100vh; height: 100dvh; max-height: none; border: none; border-radius: 0; }
+            .menu-container {
+                max-width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                max-height: none;
+                border: none;
+                border-radius: 0;
+            }
+        }
+
+        /* 移动端横屏提示蒙层 */
+        .landscape-prompt {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background-color: #051324;
+            color: #b3dfff;
+            z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .landscape-prompt .prompt-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .landscape-prompt .phone-icon {
+            font-size: 64px;
+            animation: rotatePhone 2s ease-in-out infinite;
+        }
+
+        .landscape-prompt .prompt-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00f2ff;
+            line-height: 1.5;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        @keyframes rotatePhone {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(-90deg);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
         }
     </style>
 </head>
+
 <body>
+    <!-- 移动端横屏提示蒙层 -->
+    <div id="landscape-prompt" class="landscape-prompt">
+        <div class="prompt-content">
+            <div class="phone-icon">📱</div>
+            <div class="prompt-text" data-i18n="landscapeTip">请旋转设备至竖屏状态以进行游戏</div>
+        </div>
+    </div>
+
     <div class="bg-glow"></div>
     <div class="stars"></div>
 
     <div class="menu-container">
-        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-main); background: var(--card-bg); flex-shrink: 0;">
+        <div
+            style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-main); background: var(--card-bg); flex-shrink: 0;">
             <h2 style="color: var(--text-main); font-style: italic; margin: 0; font-size: 20px;"></h2>
             <div style="display: flex; gap: 8px;">
-                <button id="btnEditor" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="editorEntry">谱面编辑器</button>
-                <button id="btnOffsetTest" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="offsetTest">校准测试</button>
-                <button id="btnAutoPlay" class="btn" style="background: #555; padding: 6px 12px; font-size: 13px;" data-i18n="autoOff">自动: 关</button>
-                <button id="btnOpenSettings" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="settings">⚙️</button>
+                <button id="btnEditor" class="btn" style="padding: 6px 12px; font-size: 13px;"
+                    data-i18n="editorEntry">谱面编辑器</button>
+                <button id="btnOffsetTest" class="btn" style="padding: 6px 12px; font-size: 13px;"
+                    data-i18n="offsetTest">校准测试</button>
+                <button id="btnAutoPlay" class="btn" style="background: #555; padding: 6px 12px; font-size: 13px;"
+                    data-i18n="autoOff">自动: 关</button>
+                <button id="btnOpenSettings" class="btn" style="padding: 6px 12px; font-size: 13px;"
+                    data-i18n="settings">⚙️</button>
             </div>
         </div>
 
@@ -189,23 +516,29 @@
                 </div>
                 <div id="detailArtist" class="detail-artist">Artist</div>
                 <div id="difficultySelector" class="difficulty-selector"></div>
-                <div style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 5px;">
+                <div
+                    style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 5px;">
                     <!-- 开始游戏居中 -->
-                    <button id="btnStartSelected" class="btn" style="padding: 8px 35px; font-size: 15px; display: none;" data-i18n="startGame">开始游戏</button>
+                    <button id="btnStartSelected" class="btn" style="padding: 8px 35px; font-size: 15px; display: none;"
+                        data-i18n="startGame">开始游戏</button>
                     <!-- 编辑歌曲变窄并绝对定位在右边，采用 box-sizing 和 inset shadow 确保为内描边样式 -->
-                    <button id="btnEditSelected" class="btn" style="position: absolute; right: 25px; padding: 8px 15px; font-size: 13px; display: none; background: transparent; box-shadow: inset 0 0 0 2px var(--border-main); border: none; color: var(--text-main); box-sizing: border-box;" data-i18n="editSong">编辑歌曲</button>
+                    <button id="btnEditSelected" class="btn"
+                        style="position: absolute; right: 25px; padding: 8px 15px; font-size: 13px; display: none; background: transparent; box-shadow: inset 0 0 0 2px var(--border-main); border: none; color: var(--text-main); box-sizing: border-box;"
+                        data-i18n="editSong">编辑歌曲</button>
                 </div>
             </div>
-            
+
             <div class="song-list-bottom" id="songList">
-                <div style="color: var(--text-sub); text-align: center; padding: 20px;" data-i18n="loadingSongs">正在加载歌单配置...</div>
+                <div style="color: var(--text-sub); text-align: center; padding: 20px;" data-i18n="loadingSongs">
+                    正在加载歌单配置...</div>
             </div>
         </div>
-        
+
         <!-- 设置界面遮罩层 -->
         <div id="settingsOverlay" class="overlay hidden">
             <h2 data-i18n="gameSettings">游戏设置</h2>
-            <div style="width: 100%; max-width: 350px; text-align: left; background: var(--setting-bg); padding: 25px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 20px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 60vh;">
+            <div
+                style="width: 100%; max-width: 350px; text-align: left; background: var(--setting-bg); padding: 25px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 20px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 60vh;">
                 <div class="settings-row">
                     <span data-i18n="language">语言 / Language:</span>
                     <button id="btnLangToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
@@ -233,62 +566,92 @@
                 <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
                     <span data-i18n="presetSkin">预设音符外观:</span>
                     <div style="display: flex; gap: 5px; width: 100%;">
-                        <button id="btnPreset1" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset1">预设1</button>
-                        <button id="btnPreset2" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset2">预设2</button>
-                        <button id="btnPreset3" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset3">预设3</button>
-                        <button id="btnPreset4" class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;" data-i18n="preset4">预设4</button>
+                        <button id="btnPreset1" class="btn"
+                            style="flex:1; padding: 6px; font-size: 12px; text-align: center;"
+                            data-i18n="preset1">预设1</button>
+                        <button id="btnPreset2" class="btn"
+                            style="flex:1; padding: 6px; font-size: 12px; text-align: center;"
+                            data-i18n="preset2">预设2</button>
+                        <button id="btnPreset3" class="btn"
+                            style="flex:1; padding: 6px; font-size: 12px; text-align: center;"
+                            data-i18n="preset3">预设3</button>
+                        <button id="btnPreset4" class="btn"
+                            style="flex:1; padding: 6px; font-size: 12px; text-align: center;"
+                            data-i18n="preset4">预设4</button>
                     </div>
                     <span data-i18n="customSkin">自定义音符外观:</span>
                     <div style="display: flex; gap: 5px; width: 100%;">
-                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="orange">橙色</span><input type="file" id="uploadSlime0" accept="image/*" style="display:none;"></label>
-                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="green">绿色</span><input type="file" id="uploadSlime1" accept="image/*" style="display:none;"></label>
-                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="purple">紫色</span><input type="file" id="uploadSlime2" accept="image/*" style="display:none;"></label>
-                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span data-i18n="blue">蓝色</span><input type="file" id="uploadSlime3" accept="image/*" style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span
+                                data-i18n="orange">橙色</span><input type="file" id="uploadSlime0" accept="image/*"
+                                style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span
+                                data-i18n="green">绿色</span><input type="file" id="uploadSlime1" accept="image/*"
+                                style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span
+                                data-i18n="purple">紫色</span><input type="file" id="uploadSlime2" accept="image/*"
+                                style="display:none;"></label>
+                        <label class="btn" style="flex:1; padding: 6px; font-size: 12px; text-align: center;"><span
+                                data-i18n="blue">蓝色</span><input type="file" id="uploadSlime3" accept="image/*"
+                                style="display:none;"></label>
                     </div>
-                    <button id="btnResetSlimes" class="btn" style="width: 100%; padding: 6px; font-size: 12px; background: #666;" data-i18n="resetSlimes">重置为默认史莱姆</button>
+                    <button id="btnResetSlimes" class="btn"
+                        style="width: 100%; padding: 6px; font-size: 12px; background: #666;"
+                        data-i18n="resetSlimes">重置为默认史莱姆</button>
                 </div>
-                <div class="shortcut-info" data-i18n="shortcutInfo" style="margin-bottom: 0; margin-top: 15px; text-align: center;">
+                <div class="shortcut-info" data-i18n="shortcutInfo"
+                    style="margin-bottom: 0; margin-top: 15px; text-align: center;">
                     手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。
                 </div>
             </div>
-            <button id="btnSettingsBack" class="btn" style="padding: 10px 30px; font-size: 16px;" data-i18n="closeSettings">关闭设置</button>
+            <button id="btnSettingsBack" class="btn" style="padding: 10px 30px; font-size: 16px;"
+                data-i18n="closeSettings">关闭设置</button>
         </div>
-        
+
         <!-- 自定义谱面界面遮罩层 -->
         <div id="customChartOverlay" class="overlay hidden">
             <h2 data-i18n="customCharts">自定义谱面</h2>
-            <div id="customChartList" style="width: 100%; max-width: 350px; background: var(--setting-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 10px;">
+            <div id="customChartList"
+                style="width: 100%; max-width: 350px; background: var(--setting-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 10px;">
                 <!-- 谱面列表项将动态生成 -->
             </div>
             <!-- 提示信息 -->
-            <div class="shortcut-info" data-i18n="storageWarning" style="width: 100%; max-width: 350px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+            <div class="shortcut-info" data-i18n="storageWarning"
+                style="width: 100%; max-width: 350px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
                 ⚠️ 提示：缓存数据存在于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面源文件！
             </div>
             <div style="display: flex; gap: 15px; width: 100%; max-width: 350px; justify-content: center;">
-                <label class="btn" style="flex: 1; padding: 10px; font-size: 16px; text-align: center; cursor: pointer;">
+                <label class="btn"
+                    style="flex: 1; padding: 10px; font-size: 16px; text-align: center; cursor: pointer;">
                     <span data-i18n="importChart">导入谱面</span>
                     <input type="file" id="uploadCustomChart" accept=".json" style="display:none;">
                 </label>
-                <button id="btnCustomChartBack" class="btn" style="flex: 1; padding: 10px; font-size: 16px;" data-i18n="back">返回</button>
+                <button id="btnCustomChartBack" class="btn" style="flex: 1; padding: 10px; font-size: 16px;"
+                    data-i18n="back">返回</button>
             </div>
         </div>
 
         <!-- 添加/编辑自定义歌曲界面遮罩层 -->
         <div id="customSongOverlay" class="overlay hidden">
             <h2 id="customSongTitle" data-i18n="addCustomSong">添加自定义歌曲</h2>
-            <div style="width: 100%; max-width: 380px; text-align: left; background: var(--setting-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 15px;">
-                
+            <div
+                style="width: 100%; max-width: 380px; text-align: left; background: var(--setting-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 15px;">
+
                 <!-- 歌曲名称 -->
                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="songName">歌曲名称:</span>
-                    <input type="text" id="inputSongTitle" placeholder="请输入歌曲名称" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border-main); background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 14px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);"
+                        data-i18n="songName">歌曲名称:</span>
+                    <input type="text" id="inputSongTitle" placeholder="请输入歌曲名称"
+                        style="padding: 8px; border-radius: 6px; border: 1px solid var(--border-main); background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 14px;">
                 </div>
 
                 <!-- 封面上传 -->
                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="uploadCover">歌曲封面 (可选):</span>
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);"
+                        data-i18n="uploadCover">歌曲封面 (可选):</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <img id="imgCustomSongCoverPreview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-main);">
+                        <img id="imgCustomSongCoverPreview"
+                            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                            style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-main);">
                         <label class="btn" style="padding: 6px 12px; font-size: 13px; cursor: pointer;">
                             <span data-i18n="chooseImage">选择图片</span>
                             <input type="file" id="uploadCustomSongCover" accept="image/*" style="display:none;">
@@ -298,9 +661,12 @@
 
                 <!-- 歌曲音频上传 -->
                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="uploadAudio">歌曲音频 (.mp3/.ogg/.wav):</span>
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);"
+                        data-i18n="uploadAudio">歌曲音频 (.mp3/.ogg/.wav):</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <span id="labelCustomSongAudioName" style="font-size: 13px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;" data-i18n="noFileSelected">未选择文件</span>
+                        <span id="labelCustomSongAudioName"
+                            style="font-size: 13px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;"
+                            data-i18n="noFileSelected">未选择文件</span>
                         <label class="btn" style="padding: 6px 12px; font-size: 13px; cursor: pointer;">
                             <span data-i18n="chooseAudio">选择音频</span>
                             <input type="file" id="uploadCustomSongAudio" accept="audio/*" style="display:none;">
@@ -311,23 +677,31 @@
                 <!-- 谱面难度列表编辑 -->
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="chartsList">谱面列表:</span>
-                        <button id="btnAddChartRow" class="btn" style="padding: 4px 10px; font-size: 12px;">+ 添加难度</button>
+                        <span style="font-size: 14px; font-weight: bold; color: var(--text-main);"
+                            data-i18n="chartsList">谱面列表:</span>
+                        <button id="btnAddChartRow" class="btn" style="padding: 4px 10px; font-size: 12px;">+
+                            添加难度</button>
                     </div>
-                    <div id="containerChartRows" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                    <div id="containerChartRows"
+                        style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
                         <!-- 动态生成谱面行 -->
                     </div>
                 </div>
             </div>
             <!-- 提示信息 -->
-            <div class="shortcut-info" data-i18n="storageWarning" style="width: 100%; max-width: 380px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+            <div class="shortcut-info" data-i18n="storageWarning"
+                style="width: 100%; max-width: 380px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
                 提示：上传内容仅保存于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面文件！
             </div>
-            
+
             <div style="display: flex; gap: 15px; width: 100%; max-width: 380px; justify-content: center;">
-                <button id="btnSaveCustomSong" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #28a745;" data-i18n="save">保存</button>
-                <button id="btnDeleteCustomSong" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #dc3545; display: none;" data-i18n="delete">删除歌曲</button>
-                <button id="btnCustomSongCancel" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #6c757d;" data-i18n="cancel">取消</button>
+                <button id="btnSaveCustomSong" class="btn"
+                    style="flex: 1; padding: 10px; font-size: 16px; background: #28a745;" data-i18n="save">保存</button>
+                <button id="btnDeleteCustomSong" class="btn"
+                    style="flex: 1; padding: 10px; font-size: 16px; background: #dc3545; display: none;"
+                    data-i18n="delete">删除歌曲</button>
+                <button id="btnCustomSongCancel" class="btn"
+                    style="flex: 1; padding: 10px; font-size: 16px; background: #6c757d;" data-i18n="cancel">取消</button>
             </div>
         </div>
     </div>
@@ -335,33 +709,33 @@
     <script>
         // --- 国际化 ---
         const i18n = {
-            zh: { 
-                loadingSongs: "正在加载歌单配置...", 
+            zh: {
+                loadingSongs: "正在加载歌单配置...",
                 loadFailed: "加载失败",
                 offsetTest: "偏移调整",
                 editorEntry: "谱面编辑器",
                 startGame: "开始游戏",
-                autoOff: "自动: 关", 
-                autoOn: "自动: 开", 
+                autoOff: "自动: 关",
+                autoOn: "自动: 开",
                 settings: "⚙️",
-                gameSettings: "游戏设置", 
-                language: "语言 / Language:", 
+                gameSettings: "游戏设置",
+                language: "语言 / Language:",
                 lightMode: "明亮模式:",
-                hueAdjust: "主色调调整:", 
-                musicVol: "音乐音量", 
+                hueAdjust: "主色调调整:",
+                musicVol: "音乐音量",
                 sfxVol: "音效音量",
-                noteScale: "图案大小缩放", 
-                customSkin: "自定义音符外观:", 
-                orange: "橙色", 
+                noteScale: "图案大小缩放",
+                customSkin: "自定义音符外观:",
+                orange: "橙色",
                 green: "绿色",
-                purple: "紫色", 
-                blue: "蓝色", 
+                purple: "紫色",
+                blue: "蓝色",
                 resetSlimes: "重置为默认史莱姆",
-                presetSkin: "预设音符外观:", 
-                preset1: "初音", 
+                presetSkin: "预设音符外观:",
+                preset1: "初音",
                 preset2: "瑞希",
-                preset3: "镜音连", 
-                preset4: "预设4", 
+                preset3: "镜音连",
+                preset4: "预设4",
                 closeSettings: "关闭设置",
                 shortcutInfo: "手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。",
                 customCharts: "自定义谱面",
@@ -387,35 +761,36 @@
                 pleaseFillFields: "请完整填写歌曲名称并上传音频与至少一个谱面",
                 saveSuccess: "保存成功！",
                 loadedAudio: "已存在音频",
-                storageWarning: "提示：上传内容仅保存于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面文件！"
+                storageWarning: "提示：上传内容仅保存于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面文件！",
+                landscapeTip: "请旋转设备至竖屏状态以进行游戏"
             },
-            en: { 
-                loadingSongs: "Loading songs...", 
+            en: {
+                loadingSongs: "Loading songs...",
                 loadFailed: "Load Failed",
                 offsetTest: "Offset Adjust",
                 editorEntry: "Editor",
                 startGame: "Start Game",
-                autoOff: "Auto: OFF", 
-                autoOn: "Auto: ON", 
+                autoOff: "Auto: OFF",
+                autoOn: "Auto: ON",
                 settings: "⚙️",
-                gameSettings: "Game Settings", 
-                language: "Language / 语言:", 
+                gameSettings: "Game Settings",
+                language: "Language / 语言:",
                 lightMode: "Light Mode:",
-                hueAdjust: "Hue Adjust:", 
-                musicVol: "Music Vol", 
+                hueAdjust: "Hue Adjust:",
+                musicVol: "Music Vol",
                 sfxVol: "SFX Vol",
-                noteScale: "Note Scale", 
-                customSkin: "Custom Note Skins:", 
-                orange: "Orange", 
+                noteScale: "Note Scale",
+                customSkin: "Custom Note Skins:",
+                orange: "Orange",
                 green: "Green",
-                purple: "Purple", 
-                blue: "Blue", 
+                purple: "Purple",
+                blue: "Blue",
                 resetSlimes: "Reset to Default Skins",
-                presetSkin: "Preset Skins:", 
-                preset1: "Miku", 
+                presetSkin: "Preset Skins:",
+                preset1: "Miku",
                 preset2: "Mizuki",
-                preset3: "Len", 
-                preset4: "Preset 4", 
+                preset3: "Len",
+                preset4: "Preset 4",
                 closeSettings: "Close Settings",
                 shortcutInfo: "Tap the bottom slimes to play on Mobile;<br>Use S, D, J, K keys to play on PC.",
                 customCharts: "Custom Charts",
@@ -441,12 +816,13 @@
                 pleaseFillFields: "Please enter song title, upload audio and at least one chart",
                 saveSuccess: "Saved successfully!",
                 loadedAudio: "Audio Loaded",
-                storageWarning: "Note: Uploaded content is stored only locally in the browser. Clearing browser junk, using incognito mode or changing browsers will cause data loss. Please make sure to back up your local source files!"
+                storageWarning: "Note: Uploaded content is stored only locally in the browser. Clearing browser junk, using incognito mode or changing browsers will cause data loss. Please make sure to back up your local source files!",
+                landscapeTip: "Please rotate your device to portrait mode to play the game"
             }
         };
         let currentLang = localStorage.getItem('slime_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
         function t(key) { return i18n[currentLang][key] || key; }
-        
+
         let isAutoPlay = localStorage.getItem('slime_autoPlay') === 'true';
         function updateAutoPlayBtn() {
             const btn = document.getElementById('btnAutoPlay');
@@ -462,7 +838,7 @@
                 el.innerHTML = i18n[currentLang][el.getAttribute('data-i18n')] || el.innerHTML;
             });
             const langBtn = document.getElementById('btnLangToggle');
-            if(langBtn) langBtn.textContent = currentLang === 'zh' ? '简体中文' : 'English';
+            if (langBtn) langBtn.textContent = currentLang === 'zh' ? '简体中文' : 'English';
             updateAutoPlayBtn();
         }
         updateUIi18n();
@@ -597,28 +973,28 @@
             const row = document.createElement('div');
             row.className = 'chart-row';
             row.style.cssText = 'display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px; border: 1px solid var(--border-sub);';
-            
+
             const levelInput = document.createElement('input');
             levelInput.type = 'text';
             levelInput.placeholder = currentLang === 'zh' ? '等级 (如: 8)' : 'Level (e.g. 8)';
             levelInput.value = level;
             levelInput.style.cssText = 'width: 80px; padding: 5px; border-radius: 4px; border: 1px solid var(--border-main); background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 12px;';
-            
+
             const fileLabel = document.createElement('label');
             fileLabel.className = 'btn';
             fileLabel.style.cssText = 'padding: 4px 8px; font-size: 11px; cursor: pointer; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
-            
+
             const fileText = document.createElement('span');
             fileText.textContent = chartFileName || (currentLang === 'zh' ? '上传JSON' : 'Upload JSON');
             fileLabel.appendChild(fileText);
-            
+
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = '.json';
             fileInput.style.display = 'none';
-            
+
             let rowChartData = chartData;
-            
+
             fileInput.onchange = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -634,18 +1010,18 @@
                 reader.readAsText(file);
             };
             fileLabel.appendChild(fileInput);
-            
+
             const delBtn = document.createElement('button');
             delBtn.textContent = '✖';
             delBtn.style.cssText = 'background: transparent; border: none; color: #ff4444; font-weight: bold; cursor: pointer; padding: 0 5px; font-size: 14px; flex-shrink: 0;';
             delBtn.onclick = () => {
                 row.remove();
             };
-            
+
             row.appendChild(levelInput);
             row.appendChild(fileLabel);
             row.appendChild(delBtn);
-            
+
             row.getValues = () => {
                 return {
                     level: levelInput.value.trim(),
@@ -653,7 +1029,7 @@
                     chartFileName: fileText.textContent
                 };
             };
-            
+
             return row;
         }
 
@@ -661,17 +1037,17 @@
             currentEditingSong = null;
             tempAudioFile = null;
             tempCoverDataURL = '';
-            
+
             document.getElementById('customSongTitle').textContent = t('addCustomSong');
             document.getElementById('inputSongTitle').value = '';
             document.getElementById('imgCustomSongCoverPreview').src = DEFAULT_COVER;
             document.getElementById('labelCustomSongAudioName').textContent = t('noFileSelected');
             document.getElementById('btnDeleteCustomSong').style.display = 'none';
-            
+
             const container = document.getElementById('containerChartRows');
             container.innerHTML = '';
             container.appendChild(createChartRowElement('', '', null));
-            
+
             document.getElementById('customSongOverlay').classList.remove('hidden');
         }
 
@@ -679,20 +1055,20 @@
             try {
                 const song = await getCustomSong(displaySong.id);
                 if (!song) throw new Error("Song not found");
-                
+
                 currentEditingSong = song;
                 tempAudioFile = null;
                 tempCoverDataURL = song.cover || '';
-                
+
                 document.getElementById('customSongTitle').textContent = t('editSong');
                 document.getElementById('inputSongTitle').value = song.title;
                 document.getElementById('imgCustomSongCoverPreview').src = song.cover || DEFAULT_COVER;
                 document.getElementById('labelCustomSongAudioName').textContent = t('loadedAudio');
                 document.getElementById('btnDeleteCustomSong').style.display = 'block';
-                
+
                 const container = document.getElementById('containerChartRows');
                 container.innerHTML = '';
-                
+
                 if (song.levels && song.levels.length > 0) {
                     song.levels.forEach(l => {
                         container.appendChild(createChartRowElement(l.level, l.chartFileName || '已存谱面', l.chart));
@@ -700,7 +1076,7 @@
                 } else {
                     container.appendChild(createChartRowElement('', '', null));
                 }
-                
+
                 document.getElementById('customSongOverlay').classList.remove('hidden');
             } catch (err) {
                 console.error("加载编辑数据失败:", err);
@@ -766,7 +1142,7 @@
             } else if (currentEditingSong) {
                 audio = currentEditingSong.audio;
             }
-            
+
             if (!audio) {
                 alert(t('pleaseFillFields'));
                 return;
@@ -807,7 +1183,7 @@
             try {
                 await saveCustomSong(songToSave);
                 document.getElementById('customSongOverlay').classList.add('hidden');
-                
+
                 tempAudioFile = null;
                 tempCoverDataURL = '';
                 currentEditingSong = null;
@@ -839,47 +1215,47 @@
         function renderCustomChartList() {
             const list = document.getElementById('customChartList');
             list.innerHTML = '';
-            
+
             if (!currentSelectedSong) return;
-            
+
             // 为了按不同歌曲分开，我们使用包含当前选定歌曲唯一标识符（例如当前选定的音频文件名）的 key 来索引或过滤
             const songKey = currentSelectedSong.audio;
             let allCharts = [];
-            try { allCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
-            
+            try { allCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) { }
+
             // 过滤出属于当前选中歌曲的自定义谱面
             const charts = allCharts.filter(c => c.songKey === songKey);
-            
+
             if (charts.length === 0) {
                 list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">${t('emptyCustom')}</div>`;
                 return;
             }
-            
+
             charts.forEach(c => {
                 const item = document.createElement('div');
                 item.className = 'btn';
                 item.style.cssText = 'background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-sub); text-align: left; padding: 10px; margin-bottom: 5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 6px;';
-                
+
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = c.name;
                 nameSpan.style.flex = '1';
                 nameSpan.style.whiteSpace = 'nowrap';
                 nameSpan.style.overflow = 'hidden';
                 nameSpan.style.textOverflow = 'ellipsis';
-                
+
                 const delBtn = document.createElement('button');
                 delBtn.textContent = '✖';
                 delBtn.style.cssText = 'background: transparent; border: none; color: #ff4444; font-weight: bold; cursor: pointer; padding: 0 5px; font-size: 14px;';
                 delBtn.onclick = (e) => {
                     e.stopPropagation();
                     let updatedCharts = [];
-                    try { updatedCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
+                    try { updatedCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) { }
                     updatedCharts = updatedCharts.filter(x => x.id !== c.id);
                     localStorage.setItem('slime_custom_charts_index', JSON.stringify(updatedCharts));
                     localStorage.removeItem('slime_custom_chart_content_' + c.id);
                     renderCustomChartList();
                 };
-                
+
                 item.onclick = () => {
                     if (currentSelectedSong) {
                         const audioParam = encodeURIComponent(currentSelectedSong.audio);
@@ -887,7 +1263,7 @@
                         window.location.href = `game.html?audio=${audioParam}&chart=${chartParam}`;
                     }
                 };
-                
+
                 item.appendChild(nameSpan);
                 item.appendChild(delBtn);
                 list.appendChild(item);
@@ -908,7 +1284,7 @@
                 try {
                     JSON.parse(event.target.result); // 校验 JSON
                     let charts = [];
-                    try { charts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
+                    try { charts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) { }
                     const newId = Date.now();
                     // 移除扩展名 .json
                     let displayName = file.name;
@@ -933,7 +1309,7 @@
                 const res = await fetch('song_list.json');
                 if (!res.ok) throw new Error("无法加载 song_list.json");
                 const songs = await res.json();
-                
+
                 // 加载本地自定义歌曲
                 let customSongs = [];
                 try {
@@ -941,7 +1317,7 @@
                 } catch (dbErr) {
                     console.error("加载自定义歌曲失败:", dbErr);
                 }
-                
+
                 // 将自定义歌曲映射成与普通歌曲一样的属性格式
                 customSongs = customSongs.map(s => {
                     const mappedLevels = s.levels.map((l, idx) => ({
@@ -959,9 +1335,9 @@
                         isCustom: true
                     };
                 });
-                
+
                 const combinedSongs = [...songs, ...customSongs];
-                
+
                 // 在列尾追加一个“添加自定义歌曲卡片”
                 combinedSongs.push({
                     isAddCard: true,
@@ -969,7 +1345,7 @@
                     artist: t('clickToAdd') || "点击导入或新建",
                     levels: []
                 });
-                
+
                 renderSongList(combinedSongs);
             } catch (err) {
                 console.error("加载资源失败:", err);
@@ -982,16 +1358,16 @@
             const listContainer = document.getElementById('songList');
             listContainer.innerHTML = '';
             selectedIndex = -1;
-            
+
             if (allSongsData.length === 0) return;
-            const multiplyFactor = Math.max(5, Math.ceil(15 / allSongsData.length)); 
-            
+            const multiplyFactor = Math.max(5, Math.ceil(15 / allSongsData.length));
+
             for (let i = 0; i < multiplyFactor; i++) {
                 allSongsData.forEach((song, originalIdx) => {
                     const card = document.createElement('div');
                     card.className = 'song-card';
                     card.dataset.index = originalIdx;
-                    
+
                     if (song.isAddCard) {
                         card.innerHTML = `
                             <div class="song-thumb" style="display:flex; justify-content:center; align-items:center; font-size:24px; font-weight:bold; background:var(--btn-bg); color:white; border-radius:8px;">+</div>
@@ -1004,7 +1380,7 @@
                     } else {
                         const coverSrc = song.cover || DEFAULT_COVER;
                         const diffHtml = song.levels.map(l => `<div class="diff-badge">${l.level}</div>`).join('');
-                        
+
                         card.innerHTML = `
                             <img class="song-thumb" src="${coverSrc}" onerror="this.src='${DEFAULT_COVER}'">
                             <div class="song-info">
@@ -1014,8 +1390,8 @@
                             <div class="song-diffs">${diffHtml}</div>
                         `;
                     }
-                    
-                    card.onclick = function() {
+
+                    card.onclick = function () {
                         if (isScrollingProgrammatically) return;
                         if (song.isAddCard) {
                             openAddCustomSongPage();
@@ -1024,20 +1400,20 @@
                         isScrollingProgrammatically = true;
                         selectedIndex = originalIdx;
                         selectSongForDetail(song, this);
-                        
+
                         listContainer.style.scrollSnapType = 'none';
                         this.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                        
+
                         setTimeout(() => {
                             listContainer.style.scrollSnapType = 'y mandatory';
                             isScrollingProgrammatically = false;
                             handleSongScroll({ target: listContainer }, true);
-                        }, 400); 
+                        }, 400);
                     };
                     listContainer.appendChild(card);
                 });
             }
-            
+
             listContainer.removeEventListener('scroll', handleSongScroll);
             listContainer.addEventListener('scroll', handleSongScroll);
 
@@ -1045,17 +1421,17 @@
             setTimeout(() => {
                 const savedIdx = parseInt(localStorage.getItem('slime_lastSelectedSongIdx'));
                 const initialIdx = (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < allSongsData.length - 1) ? savedIdx : 0;
-                
+
                 const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
                 const targetCard = listContainer.children[middleGroupStartIndex + initialIdx];
                 if (targetCard) {
                     isScrollingProgrammatically = true;
                     listContainer.style.scrollSnapType = 'none';
-                    
+
                     // 先执行选中逻辑以展开顶部详情面板，确保列表容器高度变为最终的真实高度
                     selectedIndex = initialIdx;
                     selectSongForDetail(allSongsData[initialIdx], targetCard);
-                    
+
                     targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
                     setTimeout(() => {
                         listContainer.style.scrollSnapType = 'y mandatory';
@@ -1068,7 +1444,7 @@
         function handleSongScroll(e, force = false) {
             if (isScrollingProgrammatically && !force) return;
             const container = e.target || document.getElementById('songList');
-            
+
             clearTimeout(scrollDebounceTimer);
             scrollDebounceTimer = setTimeout(() => {
                 const containerCenter = container.getBoundingClientRect().top + container.offsetHeight / 2;
@@ -1083,12 +1459,12 @@
 
                 if (!closestCard) return;
                 let originalIdx = parseInt(closestCard.dataset.index);
-                
+
                 // 若滑动落点是“添加自定义歌曲卡片”，自动平滑划到临近的普通卡片上
                 if (allSongsData[originalIdx] && allSongsData[originalIdx].isAddCard) {
                     const prevCard = closestCard.previousElementSibling;
                     const nextCard = closestCard.nextElementSibling;
-                    
+
                     let choosePrev = true;
                     if (prevCard && nextCard) {
                         const distToStart = Math.min(Math.abs(selectedIndex - 0), Math.abs(selectedIndex - allSongsData.length));
@@ -1097,13 +1473,13 @@
                     } else if (nextCard) {
                         choosePrev = false;
                     }
-                    
+
                     const chosenCard = choosePrev ? prevCard : nextCard;
                     if (chosenCard) {
                         isScrollingProgrammatically = true;
                         container.style.scrollSnapType = 'none';
                         chosenCard.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                        
+
                         setTimeout(() => {
                             container.style.scrollSnapType = 'y mandatory';
                             isScrollingProgrammatically = false;
@@ -1115,17 +1491,17 @@
 
                 const totalElements = container.children.length;
                 const currentItemIdx = Array.from(container.children).indexOf(closestCard);
-                
+
                 // 无缝跳转 (Warp) 处理
                 if (currentItemIdx < allSongsData.length || currentItemIdx >= totalElements - allSongsData.length) {
                     isScrollingProgrammatically = true;
                     const multiplyFactor = totalElements / allSongsData.length;
                     const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
                     const targetCard = container.children[middleGroupStartIndex + originalIdx];
-                    
+
                     container.style.scrollSnapType = 'none';
                     targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
-                    
+
                     setTimeout(() => {
                         container.style.scrollSnapType = 'y mandatory';
                         isScrollingProgrammatically = false;
@@ -1152,23 +1528,23 @@
         function selectSongForDetail(song, centerCardElement) {
             document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
             if (centerCardElement) centerCardElement.classList.add('selected');
-            
+
             if (song.isAddCard) {
                 document.getElementById('songDetailTop').style.display = 'none';
                 return;
             }
-            
+
             localStorage.setItem('slime_lastSelectedSongIdx', selectedIndex);
-            
+
             document.getElementById('songDetailTop').style.display = 'flex';
             document.getElementById('detailCover').src = song.cover || DEFAULT_COVER;
-            
+
             const titleEl = document.getElementById('detailTitle');
             const titleContainer = document.getElementById('detailTitleContainer');
             titleEl.textContent = song.title;
             titleEl.classList.remove('scroll-active');
             titleEl.style.transform = '';
-            
+
             // 延迟计算，等待DOM就绪以获取真实的宽度进行左右滚动动画绑定
             setTimeout(() => {
                 const containerWidth = titleContainer.clientWidth;
@@ -1181,7 +1557,7 @@
 
             document.getElementById('detailArtist').textContent = song.artist;
             document.getElementById('btnStartSelected').style.display = 'block';
-            
+
             const editBtn = document.getElementById('btnEditSelected');
             if (song.isCustom) {
                 editBtn.style.display = 'block';
@@ -1191,10 +1567,10 @@
             } else {
                 editBtn.style.display = 'none';
             }
-            
+
             const diffSelector = document.getElementById('difficultySelector');
             diffSelector.innerHTML = '';
-            
+
             song.levels.forEach((levelInfo, idx) => {
                 const btn = document.createElement('div');
                 btn.className = 'diff-btn';
@@ -1211,7 +1587,7 @@
                 };
                 diffSelector.appendChild(btn);
             });
-            
+
             // 自定义歌曲的上半部分也不再显示自定义谱面按钮
             if (!song.isCustom) {
                 const customBtn = document.createElement('div');
@@ -1236,7 +1612,33 @@
             }
         });
 
+        // --- 移动端横竖屏适配 ---
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                || (window.innerWidth <= 1024 && 'ontouchstart' in window);
+        }
+
+        function handleOrientation() {
+            const prompt = document.getElementById('landscape-prompt');
+            if (isMobileDevice()) {
+                if (window.innerWidth > window.innerHeight) {
+                    // 横屏状态：显示提示
+                    prompt.style.display = 'flex';
+                } else {
+                    // 竖屏状态：隐藏提示
+                    prompt.style.display = 'none';
+                }
+            } else {
+                prompt.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', handleOrientation);
+        window.addEventListener('orientationchange', handleOrientation);
+        handleOrientation(); // 初始化检测
+
         window.addEventListener('DOMContentLoaded', fetchSongList);
     </script>
 </body>
+
 </html>
