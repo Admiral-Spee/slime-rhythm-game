@@ -65,7 +65,22 @@
             border: 2px solid var(--border-main); border-radius: 15px; box-shadow: 0 0 30px var(--border-sub); overflow: hidden;
         }
 
-        .btn { background: var(--btn-bg); border: none; border-radius: 6px; color: white; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 3px rgba(0, 0, 0, 0.45); }
+        .btn {
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.45);
+            /* 确保文字上下完美对齐 */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
         .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
 
         /* 遮罩与设置界面样式 */
@@ -94,8 +109,40 @@
         .song-select-container { display: flex; flex-direction: column; width: 100%; flex: 1; overflow: hidden; gap: 15px; }
         .song-detail-top { flex: 1; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(5px, 2vh, 15px); }
         .detail-cover { width: clamp(60px, 12vh, 110px); height: clamp(60px, 12vh, 110px); aspect-ratio: 1/1; border-radius: 12px; background: #fff; object-fit: cover; margin-bottom: clamp(4px, 1vh, 8px); box-shadow: 0 0 8px rgba(0,0,0,0.5); flex-shrink: 0; }
-        .detail-title { font-size: clamp(16px, 2.5vh, 22px); font-weight: bold; margin-bottom: 2px; text-align: center; }
-        .detail-artist { font-size: clamp(12px, 1.8vh, 14px); color: var(--text-sub); margin-bottom: clamp(6px, 1.5vh, 12px); }
+        
+        /* 限制歌曲名宽度，超出自动滚动 */
+        .detail-title-container {
+            width: 80%;
+            max-width: 380px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 2px;
+            display: flex;
+            justify-content: flex-start; /* 当需要滚动时必须从最左边开始 */
+        }
+        .detail-title {
+            font-size: clamp(16px, 2.5vh, 22px);
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+            display: inline-block;
+            width: 100%; /* 默认静止状态下宽度充满，便于通过 text-align: center 居中 */
+        }
+        @keyframes marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            10% { transform: translate3d(0, 0, 0); }
+            45% { transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0); }
+            55% { transform: translate3d(calc(-100% + var(--container-width, 300px)), 0, 0); }
+            90% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+        .detail-title.scroll-active {
+            text-align: left;
+            width: auto; /* 激活滚动时必须设为自适应内容宽度，使 -100% 能代表真实的文本总宽 */
+            animation: marquee 8s linear infinite;
+        }
+        
+        .detail-artist { font-size: clamp(12px, 1.8vh, 14px); color: var(--text-sub); margin-bottom: clamp(6px, 1.5vh, 12px); text-align: center; width: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .difficulty-selector { display: flex; gap: 12px; max-width: 350px; overflow-x: auto; padding: 5px 10px; justify-content: center; flex-shrink: 0; margin-bottom: 5px; }
         .difficulty-selector::-webkit-scrollbar { display: none; }
         .diff-btn { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); border-radius: 50%; background: transparent; border: 2px solid var(--text-sub); color: var(--text-sub); display: flex; justify-content: center; align-items: center; font-size: clamp(12px, 2vh, 16px); font-weight: bold; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
@@ -126,7 +173,8 @@
     <div class="menu-container">
         <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-main); background: var(--card-bg); flex-shrink: 0;">
             <h2 style="color: var(--text-main); font-style: italic; margin: 0; font-size: 20px;"></h2>
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+                <button id="btnEditor" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="editorEntry">谱面编辑器</button>
                 <button id="btnOffsetTest" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="offsetTest">校准测试</button>
                 <button id="btnAutoPlay" class="btn" style="background: #555; padding: 6px 12px; font-size: 13px;" data-i18n="autoOff">自动: 关</button>
                 <button id="btnOpenSettings" class="btn" style="padding: 6px 12px; font-size: 13px;" data-i18n="settings">⚙️</button>
@@ -136,10 +184,17 @@
         <div class="song-select-container">
             <div class="song-detail-top" id="songDetailTop" style="display: none;">
                 <img id="detailCover" class="detail-cover" src="" alt="Cover">
-                <div id="detailTitle" class="detail-title">Song Title</div>
+                <div class="detail-title-container" id="detailTitleContainer">
+                    <div id="detailTitle" class="detail-title">Song Title</div>
+                </div>
                 <div id="detailArtist" class="detail-artist">Artist</div>
                 <div id="difficultySelector" class="difficulty-selector"></div>
-                <button id="btnStartSelected" class="btn" style="padding: 8px 35px; font-size: 15px; margin-top: 5px; display: none;" data-i18n="startGame">开始游戏</button>
+                <div style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 5px;">
+                    <!-- 开始游戏居中 -->
+                    <button id="btnStartSelected" class="btn" style="padding: 8px 35px; font-size: 15px; display: none;" data-i18n="startGame">开始游戏</button>
+                    <!-- 编辑歌曲变窄并绝对定位在右边，采用 box-sizing 和 inset shadow 确保为内描边样式 -->
+                    <button id="btnEditSelected" class="btn" style="position: absolute; right: 25px; padding: 8px 15px; font-size: 13px; display: none; background: transparent; box-shadow: inset 0 0 0 2px var(--border-main); border: none; color: var(--text-main); box-sizing: border-box;" data-i18n="editSong">编辑歌曲</button>
+                </div>
             </div>
             
             <div class="song-list-bottom" id="songList">
@@ -198,6 +253,83 @@
             </div>
             <button id="btnSettingsBack" class="btn" style="padding: 10px 30px; font-size: 16px;" data-i18n="closeSettings">关闭设置</button>
         </div>
+        
+        <!-- 自定义谱面界面遮罩层 -->
+        <div id="customChartOverlay" class="overlay hidden">
+            <h2 data-i18n="customCharts">自定义谱面</h2>
+            <div id="customChartList" style="width: 100%; max-width: 350px; background: var(--setting-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 10px;">
+                <!-- 谱面列表项将动态生成 -->
+            </div>
+            <!-- 提示信息 -->
+            <div class="shortcut-info" data-i18n="storageWarning" style="width: 100%; max-width: 350px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+                ⚠️ 提示：缓存数据存在于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面源文件！
+            </div>
+            <div style="display: flex; gap: 15px; width: 100%; max-width: 350px; justify-content: center;">
+                <label class="btn" style="flex: 1; padding: 10px; font-size: 16px; text-align: center; cursor: pointer;">
+                    <span data-i18n="importChart">导入谱面</span>
+                    <input type="file" id="uploadCustomChart" accept=".json" style="display:none;">
+                </label>
+                <button id="btnCustomChartBack" class="btn" style="flex: 1; padding: 10px; font-size: 16px;" data-i18n="back">返回</button>
+            </div>
+        </div>
+
+        <!-- 添加/编辑自定义歌曲界面遮罩层 -->
+        <div id="customSongOverlay" class="overlay hidden">
+            <h2 id="customSongTitle" data-i18n="addCustomSong">添加自定义歌曲</h2>
+            <div style="width: 100%; max-width: 380px; text-align: left; background: var(--setting-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border-main); margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); overflow-y: auto; max-height: 55vh; display: flex; flex-direction: column; gap: 15px;">
+                
+                <!-- 歌曲名称 -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="songName">歌曲名称:</span>
+                    <input type="text" id="inputSongTitle" placeholder="请输入歌曲名称" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border-main); background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 14px;">
+                </div>
+
+                <!-- 封面上传 -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="uploadCover">歌曲封面 (可选):</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <img id="imgCustomSongCoverPreview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-main);">
+                        <label class="btn" style="padding: 6px 12px; font-size: 13px; cursor: pointer;">
+                            <span data-i18n="chooseImage">选择图片</span>
+                            <input type="file" id="uploadCustomSongCover" accept="image/*" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 歌曲音频上传 -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="uploadAudio">歌曲音频 (.mp3/.ogg/.wav):</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span id="labelCustomSongAudioName" style="font-size: 13px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;" data-i18n="noFileSelected">未选择文件</span>
+                        <label class="btn" style="padding: 6px 12px; font-size: 13px; cursor: pointer;">
+                            <span data-i18n="chooseAudio">选择音频</span>
+                            <input type="file" id="uploadCustomSongAudio" accept="audio/*" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 谱面难度列表编辑 -->
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: var(--text-main);" data-i18n="chartsList">谱面列表:</span>
+                        <button id="btnAddChartRow" class="btn" style="padding: 4px 10px; font-size: 12px;">+ 添加难度</button>
+                    </div>
+                    <div id="containerChartRows" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                        <!-- 动态生成谱面行 -->
+                    </div>
+                </div>
+            </div>
+            <!-- 提示信息 -->
+            <div class="shortcut-info" data-i18n="storageWarning" style="width: 100%; max-width: 380px; margin-bottom: 15px; font-size: 11px; padding: 6px 10px; line-height: 1.4; color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+                提示：上传内容仅保存于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面文件！
+            </div>
+            
+            <div style="display: flex; gap: 15px; width: 100%; max-width: 380px; justify-content: center;">
+                <button id="btnSaveCustomSong" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #28a745;" data-i18n="save">保存</button>
+                <button id="btnDeleteCustomSong" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #dc3545; display: none;" data-i18n="delete">删除歌曲</button>
+                <button id="btnCustomSongCancel" class="btn" style="flex: 1; padding: 10px; font-size: 16px; background: #6c757d;" data-i18n="cancel">取消</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -207,6 +339,7 @@
                 loadingSongs: "正在加载歌单配置...", 
                 loadFailed: "加载失败",
                 offsetTest: "偏移调整",
+                editorEntry: "谱面编辑器",
                 startGame: "开始游戏",
                 autoOff: "自动: 关", 
                 autoOn: "自动: 开", 
@@ -230,12 +363,37 @@
                 preset3: "镜音连", 
                 preset4: "预设4", 
                 closeSettings: "关闭设置",
-                shortcutInfo: "手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。"
+                shortcutInfo: "手机端游玩时直接点击最下方史莱姆；<br>电脑端游玩时使用键盘 S D J K 键。",
+                customCharts: "自定义谱面",
+                importChart: "导入谱面",
+                back: "返回",
+                emptyCustom: "暂无自定义谱面",
+                deleteConfirm: "删除该谱面?",
+                invalidJson: "非法的JSON谱面文件",
+                addCustomSong: "添加自定义歌曲",
+                clickToAdd: "点击导入或新建",
+                songName: "歌曲名称:",
+                uploadCover: "歌曲封面 (可选):",
+                chooseImage: "选择图片",
+                uploadAudio: "歌曲音频 (.mp3/.ogg/.wav):",
+                noFileSelected: "未选择文件",
+                chooseAudio: "选择音频",
+                chartsList: "谱面列表:",
+                save: "保存",
+                delete: "删除歌曲",
+                cancel: "取消",
+                editSong: "编辑歌曲",
+                customSongArtist: "自定义歌曲",
+                pleaseFillFields: "请完整填写歌曲名称并上传音频与至少一个谱面",
+                saveSuccess: "保存成功！",
+                loadedAudio: "已存在音频",
+                storageWarning: "提示：上传内容仅保存于浏览器本地，清理浏览器垃圾、无痕浏览或更换浏览器将导致数据丢失，请务必妥善保存您的本地谱面文件！"
             },
             en: { 
                 loadingSongs: "Loading songs...", 
                 loadFailed: "Load Failed",
                 offsetTest: "Offset Adjust",
+                editorEntry: "Editor",
                 startGame: "Start Game",
                 autoOff: "Auto: OFF", 
                 autoOn: "Auto: ON", 
@@ -259,7 +417,31 @@
                 preset3: "Len", 
                 preset4: "Preset 4", 
                 closeSettings: "Close Settings",
-                shortcutInfo: "Tap the bottom slimes to play on Mobile;<br>Use S, D, J, K keys to play on PC."
+                shortcutInfo: "Tap the bottom slimes to play on Mobile;<br>Use S, D, J, K keys to play on PC.",
+                customCharts: "Custom Charts",
+                importChart: "Import Chart",
+                back: "Back",
+                emptyCustom: "No custom charts",
+                deleteConfirm: "Delete this chart?",
+                invalidJson: "Invalid JSON chart file",
+                addCustomSong: "Add Custom Song",
+                clickToAdd: "Click to import or create",
+                songName: "Song Name:",
+                uploadCover: "Song Cover (Optional):",
+                chooseImage: "Choose Image",
+                uploadAudio: "Song Audio (.mp3/.ogg/.wav):",
+                noFileSelected: "No file selected",
+                chooseAudio: "Choose Audio",
+                chartsList: "Charts List:",
+                save: "Save",
+                delete: "Delete Song",
+                cancel: "Cancel",
+                editSong: "Edit Song",
+                customSongArtist: "Custom Song",
+                pleaseFillFields: "Please enter song title, upload audio and at least one chart",
+                saveSuccess: "Saved successfully!",
+                loadedAudio: "Audio Loaded",
+                storageWarning: "Note: Uploaded content is stored only locally in the browser. Clearing browser junk, using incognito mode or changing browsers will cause data loss. Please make sure to back up your local source files!"
             }
         };
         let currentLang = localStorage.getItem('slime_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
@@ -313,6 +495,7 @@
         loadLocalSettings();
 
         // --- 设置事件绑定 ---
+        document.getElementById('btnEditor').addEventListener('click', () => window.location.href = 'editor.html');
         document.getElementById('btnLangToggle').addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('slime_lang', currentLang); updateUIi18n(); });
         document.getElementById('btnOpenSettings').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('hidden'));
         document.getElementById('btnSettingsBack').addEventListener('click', () => document.getElementById('settingsOverlay').classList.add('hidden'));
@@ -338,6 +521,304 @@
         }
         document.getElementById('btnResetSlimes').addEventListener('click', () => { for (let i = 0; i < 4; i++) localStorage.removeItem('slime_customImg' + i); alert(currentLang === 'zh' ? "已重置自定义皮肤" : "Custom skins reset"); });
 
+        // --- IndexedDB for Custom Songs ---
+        const DB_NAME = 'SlimeRhythmGameDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'custom_songs';
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function getCustomSong(id) {
+            return openDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get(id);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.onerror);
+                });
+            });
+        }
+
+        function saveCustomSong(song) {
+            return openDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.put(song);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.onerror);
+                });
+            });
+        }
+
+        function deleteCustomSong(id) {
+            return openDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.delete(id);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.onerror);
+                });
+            });
+        }
+
+        function getAllCustomSongs() {
+            return openDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.onerror);
+                });
+            });
+        }
+
+        // --- Custom Songs UI and Management ---
+        let currentEditingSong = null;
+        let tempCoverDataURL = '';
+        let tempAudioFile = null;
+
+        function createChartRowElement(level = '', chartFileName = '', chartData = null) {
+            const row = document.createElement('div');
+            row.className = 'chart-row';
+            row.style.cssText = 'display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px; border: 1px solid var(--border-sub);';
+            
+            const levelInput = document.createElement('input');
+            levelInput.type = 'text';
+            levelInput.placeholder = currentLang === 'zh' ? '等级 (如: 8)' : 'Level (e.g. 8)';
+            levelInput.value = level;
+            levelInput.style.cssText = 'width: 80px; padding: 5px; border-radius: 4px; border: 1px solid var(--border-main); background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 12px;';
+            
+            const fileLabel = document.createElement('label');
+            fileLabel.className = 'btn';
+            fileLabel.style.cssText = 'padding: 4px 8px; font-size: 11px; cursor: pointer; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+            
+            const fileText = document.createElement('span');
+            fileText.textContent = chartFileName || (currentLang === 'zh' ? '上传JSON' : 'Upload JSON');
+            fileLabel.appendChild(fileText);
+            
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json';
+            fileInput.style.display = 'none';
+            
+            let rowChartData = chartData;
+            
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        rowChartData = JSON.parse(event.target.result);
+                        fileText.textContent = file.name;
+                    } catch (err) {
+                        alert(t('invalidJson') || "非法的JSON谱面文件");
+                    }
+                };
+                reader.readAsText(file);
+            };
+            fileLabel.appendChild(fileInput);
+            
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '✖';
+            delBtn.style.cssText = 'background: transparent; border: none; color: #ff4444; font-weight: bold; cursor: pointer; padding: 0 5px; font-size: 14px; flex-shrink: 0;';
+            delBtn.onclick = () => {
+                row.remove();
+            };
+            
+            row.appendChild(levelInput);
+            row.appendChild(fileLabel);
+            row.appendChild(delBtn);
+            
+            row.getValues = () => {
+                return {
+                    level: levelInput.value.trim(),
+                    chart: rowChartData,
+                    chartFileName: fileText.textContent
+                };
+            };
+            
+            return row;
+        }
+
+        function openAddCustomSongPage() {
+            currentEditingSong = null;
+            tempAudioFile = null;
+            tempCoverDataURL = '';
+            
+            document.getElementById('customSongTitle').textContent = t('addCustomSong');
+            document.getElementById('inputSongTitle').value = '';
+            document.getElementById('imgCustomSongCoverPreview').src = DEFAULT_COVER;
+            document.getElementById('labelCustomSongAudioName').textContent = t('noFileSelected');
+            document.getElementById('btnDeleteCustomSong').style.display = 'none';
+            
+            const container = document.getElementById('containerChartRows');
+            container.innerHTML = '';
+            container.appendChild(createChartRowElement('', '', null));
+            
+            document.getElementById('customSongOverlay').classList.remove('hidden');
+        }
+
+        async function openEditCustomSongPage(displaySong) {
+            try {
+                const song = await getCustomSong(displaySong.id);
+                if (!song) throw new Error("Song not found");
+                
+                currentEditingSong = song;
+                tempAudioFile = null;
+                tempCoverDataURL = song.cover || '';
+                
+                document.getElementById('customSongTitle').textContent = t('editSong');
+                document.getElementById('inputSongTitle').value = song.title;
+                document.getElementById('imgCustomSongCoverPreview').src = song.cover || DEFAULT_COVER;
+                document.getElementById('labelCustomSongAudioName').textContent = t('loadedAudio');
+                document.getElementById('btnDeleteCustomSong').style.display = 'block';
+                
+                const container = document.getElementById('containerChartRows');
+                container.innerHTML = '';
+                
+                if (song.levels && song.levels.length > 0) {
+                    song.levels.forEach(l => {
+                        container.appendChild(createChartRowElement(l.level, l.chartFileName || '已存谱面', l.chart));
+                    });
+                } else {
+                    container.appendChild(createChartRowElement('', '', null));
+                }
+                
+                document.getElementById('customSongOverlay').classList.remove('hidden');
+            } catch (err) {
+                console.error("加载编辑数据失败:", err);
+            }
+        }
+
+        document.getElementById('btnAddChartRow').addEventListener('click', () => {
+            document.getElementById('containerChartRows').appendChild(createChartRowElement('', '', null));
+        });
+
+        document.getElementById('uploadCustomSongCover').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    tempCoverDataURL = event.target.result;
+                    document.getElementById('imgCustomSongCoverPreview').src = tempCoverDataURL;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('uploadCustomSongAudio').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                tempAudioFile = file;
+                document.getElementById('labelCustomSongAudioName').textContent = file.name;
+            }
+        });
+
+        document.getElementById('btnCustomSongCancel').addEventListener('click', () => {
+            document.getElementById('customSongOverlay').classList.add('hidden');
+            tempAudioFile = null;
+            tempCoverDataURL = '';
+            currentEditingSong = null;
+        });
+
+        document.getElementById('btnDeleteCustomSong').addEventListener('click', async () => {
+            if (currentEditingSong) {
+                try {
+                    await deleteCustomSong(currentEditingSong.id);
+                    document.getElementById('customSongOverlay').classList.add('hidden');
+                    tempAudioFile = null;
+                    tempCoverDataURL = '';
+                    currentEditingSong = null;
+                    await fetchSongList();
+                } catch (err) {
+                    console.error("删除失败:", err);
+                }
+            }
+        });
+
+        document.getElementById('btnSaveCustomSong').addEventListener('click', async () => {
+            const title = document.getElementById('inputSongTitle').value.trim();
+            if (!title) {
+                alert(t('pleaseFillFields'));
+                return;
+            }
+
+            let audio = null;
+            if (tempAudioFile) {
+                audio = tempAudioFile;
+            } else if (currentEditingSong) {
+                audio = currentEditingSong.audio;
+            }
+            
+            if (!audio) {
+                alert(t('pleaseFillFields'));
+                return;
+            }
+
+            let cover = tempCoverDataURL;
+            if (!cover && currentEditingSong) {
+                cover = currentEditingSong.cover;
+            }
+
+            const levels = [];
+            const rows = document.getElementById('containerChartRows').children;
+            for (let i = 0; i < rows.length; i++) {
+                const values = rows[i].getValues();
+                if (values.level && values.chart) {
+                    levels.push({
+                        level: values.level,
+                        chart: values.chart,
+                        chartFileName: values.chartFileName
+                    });
+                }
+            }
+
+            if (levels.length === 0) {
+                alert(t('pleaseFillFields'));
+                return;
+            }
+
+            const songId = currentEditingSong ? currentEditingSong.id : Date.now();
+            const songToSave = {
+                id: songId,
+                title: title,
+                cover: cover || '',
+                audio: audio,
+                levels: levels
+            };
+
+            try {
+                await saveCustomSong(songToSave);
+                document.getElementById('customSongOverlay').classList.add('hidden');
+                
+                tempAudioFile = null;
+                tempCoverDataURL = '';
+                currentEditingSong = null;
+
+                await fetchSongList();
+            } catch (err) {
+                console.error("保存失败:", err);
+                alert("保存失败: " + err.message);
+            }
+        });
+
         // --- 选歌与跳转核心逻辑 ---
         function normalizeSongs(songs) {
             return songs.map(s => {
@@ -354,12 +835,142 @@
         let currentSelectedSong = null;
         let currentSelectedLevel = null;
 
+        // --- 自定义谱面逻辑 ---
+        function renderCustomChartList() {
+            const list = document.getElementById('customChartList');
+            list.innerHTML = '';
+            
+            if (!currentSelectedSong) return;
+            
+            // 为了按不同歌曲分开，我们使用包含当前选定歌曲唯一标识符（例如当前选定的音频文件名）的 key 来索引或过滤
+            const songKey = currentSelectedSong.audio;
+            let allCharts = [];
+            try { allCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
+            
+            // 过滤出属于当前选中歌曲的自定义谱面
+            const charts = allCharts.filter(c => c.songKey === songKey);
+            
+            if (charts.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">${t('emptyCustom')}</div>`;
+                return;
+            }
+            
+            charts.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'btn';
+                item.style.cssText = 'background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-sub); text-align: left; padding: 10px; margin-bottom: 5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 6px;';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = c.name;
+                nameSpan.style.flex = '1';
+                nameSpan.style.whiteSpace = 'nowrap';
+                nameSpan.style.overflow = 'hidden';
+                nameSpan.style.textOverflow = 'ellipsis';
+                
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '✖';
+                delBtn.style.cssText = 'background: transparent; border: none; color: #ff4444; font-weight: bold; cursor: pointer; padding: 0 5px; font-size: 14px;';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    let updatedCharts = [];
+                    try { updatedCharts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
+                    updatedCharts = updatedCharts.filter(x => x.id !== c.id);
+                    localStorage.setItem('slime_custom_charts_index', JSON.stringify(updatedCharts));
+                    localStorage.removeItem('slime_custom_chart_content_' + c.id);
+                    renderCustomChartList();
+                };
+                
+                item.onclick = () => {
+                    if (currentSelectedSong) {
+                        const audioParam = encodeURIComponent(currentSelectedSong.audio);
+                        const chartParam = encodeURIComponent('local:slime_custom_chart_content_' + c.id);
+                        window.location.href = `game.html?audio=${audioParam}&chart=${chartParam}`;
+                    }
+                };
+                
+                item.appendChild(nameSpan);
+                item.appendChild(delBtn);
+                list.appendChild(item);
+            });
+        }
+        function openCustomChartList() {
+            renderCustomChartList();
+            document.getElementById('customChartOverlay').classList.remove('hidden');
+        }
+        document.getElementById('btnCustomChartBack').addEventListener('click', () => {
+            document.getElementById('customChartOverlay').classList.add('hidden');
+        });
+        document.getElementById('uploadCustomChart').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentSelectedSong) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    JSON.parse(event.target.result); // 校验 JSON
+                    let charts = [];
+                    try { charts = JSON.parse(localStorage.getItem('slime_custom_charts_index') || '[]'); } catch (e) {}
+                    const newId = Date.now();
+                    // 移除扩展名 .json
+                    let displayName = file.name;
+                    if (displayName.toLowerCase().endsWith('.json')) {
+                        displayName = displayName.substring(0, displayName.length - 5);
+                    }
+                    // 在索引中记录该谱面属于哪首歌曲（以 songKey 即当前选定的音频文件名为准）
+                    charts.push({ id: newId, name: displayName, songKey: currentSelectedSong.audio });
+                    localStorage.setItem('slime_custom_charts_index', JSON.stringify(charts));
+                    localStorage.setItem('slime_custom_chart_content_' + newId, event.target.result);
+                    renderCustomChartList();
+                    e.target.value = '';
+                } catch (err) {
+                    alert(t('invalidJson'));
+                }
+            };
+            reader.readAsText(file);
+        });
+
         async function fetchSongList() {
             try {
                 const res = await fetch('song_list.json');
                 if (!res.ok) throw new Error("无法加载 song_list.json");
                 const songs = await res.json();
-                renderSongList(songs);
+                
+                // 加载本地自定义歌曲
+                let customSongs = [];
+                try {
+                    customSongs = await getAllCustomSongs();
+                } catch (dbErr) {
+                    console.error("加载自定义歌曲失败:", dbErr);
+                }
+                
+                // 将自定义歌曲映射成与普通歌曲一样的属性格式
+                customSongs = customSongs.map(s => {
+                    const mappedLevels = s.levels.map((l, idx) => ({
+                        level: l.level,
+                        chart: `db:${s.id}:${idx}`,
+                        chartFileName: l.chartFileName
+                    }));
+                    return {
+                        id: s.id,
+                        title: s.title,
+                        artist: t('customSongArtist') || "自定义歌曲",
+                        cover: s.cover || '',
+                        audio: `db:${s.id}`,
+                        levels: mappedLevels,
+                        isCustom: true
+                    };
+                });
+                
+                const combinedSongs = [...songs, ...customSongs];
+                
+                // 在列尾追加一个“添加自定义歌曲卡片”
+                combinedSongs.push({
+                    isAddCard: true,
+                    title: t('addCustomSong') || "添加自定义歌曲",
+                    artist: t('clickToAdd') || "点击导入或新建",
+                    levels: []
+                });
+                
+                renderSongList(combinedSongs);
             } catch (err) {
                 console.error("加载资源失败:", err);
                 document.getElementById('songList').innerHTML = `<div style="color: #ff4444; font-size: 14px; text-align: center; padding: 20px;">${t('loadFailed')}: ${err.message}</div>`;
@@ -381,20 +992,35 @@
                     card.className = 'song-card';
                     card.dataset.index = originalIdx;
                     
-                    const coverSrc = song.cover || DEFAULT_COVER;
-                    const diffHtml = song.levels.map(l => `<div class="diff-badge">${l.level}</div>`).join('');
-                    
-                    card.innerHTML = `
-                        <img class="song-thumb" src="${coverSrc}" onerror="this.src='${DEFAULT_COVER}'">
-                        <div class="song-info">
-                            <div class="song-title">${song.title}</div>
-                            <div class="song-artist">${song.artist}</div>
-                        </div>
-                        <div class="song-diffs">${diffHtml}</div>
-                    `;
+                    if (song.isAddCard) {
+                        card.innerHTML = `
+                            <div class="song-thumb" style="display:flex; justify-content:center; align-items:center; font-size:24px; font-weight:bold; background:var(--btn-bg); color:white; border-radius:8px;">+</div>
+                            <div class="song-info">
+                                <div class="song-title">${song.title}</div>
+                                <div class="song-artist">${song.artist}</div>
+                            </div>
+                            <div class="song-diffs"></div>
+                        `;
+                    } else {
+                        const coverSrc = song.cover || DEFAULT_COVER;
+                        const diffHtml = song.levels.map(l => `<div class="diff-badge">${l.level}</div>`).join('');
+                        
+                        card.innerHTML = `
+                            <img class="song-thumb" src="${coverSrc}" onerror="this.src='${DEFAULT_COVER}'">
+                            <div class="song-info">
+                                <div class="song-title">${song.title}</div>
+                                <div class="song-artist">${song.artist}</div>
+                            </div>
+                            <div class="song-diffs">${diffHtml}</div>
+                        `;
+                    }
                     
                     card.onclick = function() {
                         if (isScrollingProgrammatically) return;
+                        if (song.isAddCard) {
+                            openAddCustomSongPage();
+                            return;
+                        }
                         isScrollingProgrammatically = true;
                         selectedIndex = originalIdx;
                         selectSongForDetail(song, this);
@@ -418,7 +1044,7 @@
             // 初始化定位
             setTimeout(() => {
                 const savedIdx = parseInt(localStorage.getItem('slime_lastSelectedSongIdx'));
-                const initialIdx = (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < allSongsData.length) ? savedIdx : 0;
+                const initialIdx = (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < allSongsData.length - 1) ? savedIdx : 0;
                 
                 const middleGroupStartIndex = Math.floor(multiplyFactor / 2) * allSongsData.length;
                 const targetCard = listContainer.children[middleGroupStartIndex + initialIdx];
@@ -456,7 +1082,37 @@
                 });
 
                 if (!closestCard) return;
-                const originalIdx = parseInt(closestCard.dataset.index);
+                let originalIdx = parseInt(closestCard.dataset.index);
+                
+                // 若滑动落点是“添加自定义歌曲卡片”，自动平滑划到临近的普通卡片上
+                if (allSongsData[originalIdx] && allSongsData[originalIdx].isAddCard) {
+                    const prevCard = closestCard.previousElementSibling;
+                    const nextCard = closestCard.nextElementSibling;
+                    
+                    let choosePrev = true;
+                    if (prevCard && nextCard) {
+                        const distToStart = Math.min(Math.abs(selectedIndex - 0), Math.abs(selectedIndex - allSongsData.length));
+                        const distToEnd = Math.abs(selectedIndex - (allSongsData.length - 2));
+                        choosePrev = distToStart < distToEnd;
+                    } else if (nextCard) {
+                        choosePrev = false;
+                    }
+                    
+                    const chosenCard = choosePrev ? prevCard : nextCard;
+                    if (chosenCard) {
+                        isScrollingProgrammatically = true;
+                        container.style.scrollSnapType = 'none';
+                        chosenCard.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        
+                        setTimeout(() => {
+                            container.style.scrollSnapType = 'y mandatory';
+                            isScrollingProgrammatically = false;
+                            handleSongScroll({ target: container }, true);
+                        }, 250);
+                        return;
+                    }
+                }
+
                 const totalElements = container.children.length;
                 const currentItemIdx = Array.from(container.children).indexOf(closestCard);
                 
@@ -497,13 +1153,44 @@
             document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
             if (centerCardElement) centerCardElement.classList.add('selected');
             
+            if (song.isAddCard) {
+                document.getElementById('songDetailTop').style.display = 'none';
+                return;
+            }
+            
             localStorage.setItem('slime_lastSelectedSongIdx', selectedIndex);
             
             document.getElementById('songDetailTop').style.display = 'flex';
             document.getElementById('detailCover').src = song.cover || DEFAULT_COVER;
-            document.getElementById('detailTitle').textContent = song.title;
+            
+            const titleEl = document.getElementById('detailTitle');
+            const titleContainer = document.getElementById('detailTitleContainer');
+            titleEl.textContent = song.title;
+            titleEl.classList.remove('scroll-active');
+            titleEl.style.transform = '';
+            
+            // 延迟计算，等待DOM就绪以获取真实的宽度进行左右滚动动画绑定
+            setTimeout(() => {
+                const containerWidth = titleContainer.clientWidth;
+                const textWidth = titleEl.scrollWidth;
+                if (textWidth > containerWidth) {
+                    titleEl.style.setProperty('--container-width', containerWidth + 'px');
+                    titleEl.classList.add('scroll-active');
+                }
+            }, 50);
+
             document.getElementById('detailArtist').textContent = song.artist;
             document.getElementById('btnStartSelected').style.display = 'block';
+            
+            const editBtn = document.getElementById('btnEditSelected');
+            if (song.isCustom) {
+                editBtn.style.display = 'block';
+                editBtn.onclick = () => {
+                    openEditCustomSongPage(song);
+                };
+            } else {
+                editBtn.style.display = 'none';
+            }
             
             const diffSelector = document.getElementById('difficultySelector');
             diffSelector.innerHTML = '';
@@ -524,6 +1211,21 @@
                 };
                 diffSelector.appendChild(btn);
             });
+            
+            // 自定义歌曲的上半部分也不再显示自定义谱面按钮
+            if (!song.isCustom) {
+                const customBtn = document.createElement('div');
+                customBtn.className = 'diff-btn';
+                customBtn.textContent = '+';
+                // 添加 z-index 和 pointer-events 确保点击可以被触发
+                customBtn.style.zIndex = '10';
+                customBtn.style.position = 'relative';
+                customBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    openCustomChartList();
+                };
+                diffSelector.appendChild(customBtn);
+            }
         }
 
         document.getElementById('btnStartSelected').addEventListener('click', () => {

@@ -156,9 +156,24 @@
     <!-- 左侧控制面板 -->
     <div class="sidebar">
         <div class="panel">
+            <div class="control-row" style="margin-bottom: 0;">
+                <button id="btnBackToGame" style="background: #28a745; width: 100%; font-size: 13px; font-weight: bold;" data-i18n="backToGame">返回游戏</button>
+            </div>
+        </div>
+
+        <div class="panel">
             <div class="control-row">
                 <span data-i18n="language">语言 / Language:</span>
                 <button id="btnLangToggle" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title" data-i18n="quickSelect">快捷载入官方歌曲</div>
+            <div class="control-row" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                <select id="editorSongSelector" style="width: 100%; font-size: 12px; padding: 6px; height: auto;">
+                    <option value="" data-i18n="chooseOfficialSong">-- 选择歌曲 --</option>
+                </select>
             </div>
         </div>
 
@@ -294,7 +309,10 @@
                 addFeverStart: "+ 添加起点",
                 addFeverEnd: "+ 添加终点",
                 feverStart: "起始",
-                feverEnd: "结束"
+                feverEnd: "结束",
+                backToGame: "返回游戏",
+                quickSelect: "快捷载入歌曲",
+                chooseOfficialSong: "-- 选择歌曲 --"
             },
             en: {
                 title: "Slime Rhythm - Chart Editor",
@@ -327,7 +345,10 @@
                 addFeverStart: "+ Add Start",
                 addFeverEnd: "+ Add End",
                 feverStart: "Start",
-                feverEnd: "End"
+                feverEnd: "End",
+                backToGame: "Back to Game",
+                quickSelect: "Quick Load Song",
+                chooseOfficialSong: "-- Choose Song --"
             }
         };
 
@@ -973,6 +994,36 @@
         };
 
         // 初始化
+        document.getElementById('btnBackToGame').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // 载入官方歌曲列表逻辑
+        async function loadOfficialSongList() {
+            try {
+                const res = await fetch('song_list.json');
+                if (!res.ok) return;
+                const songs = await res.json();
+                const selector = document.getElementById('editorSongSelector');
+                songs.forEach(song => {
+                    const opt = document.createElement('option');
+                    opt.value = song.audio;
+                    opt.textContent = song.title;
+                    selector.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("加载官方歌单失败:", err);
+            }
+        }
+
+        document.getElementById('editorSongSelector').addEventListener('change', async (e) => {
+            if (!e.target.value) return;
+            
+            // 只载入音频
+            audioPlayer.src = e.target.value;
+        });
+
+        loadOfficialSongList();
         updateUIi18n();
         updateTimingPoints();
         requestAnimationFrame(render);

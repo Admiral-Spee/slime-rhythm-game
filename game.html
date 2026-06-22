@@ -179,6 +179,10 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 0 3px rgba(0, 0, 0, 0.45);
+            /* 确保文字上下完美对齐 */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn:hover {
@@ -684,6 +688,63 @@
             full_combo: null
         };
 
+        const DB_NAME = 'SlimeRhythmGameDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'custom_songs';
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function getCustomSong(id) {
+            return openDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get(id);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.onerror);
+                });
+            });
+        }
+
+        async function getCustomSongAudioArrayBuffer(audioFile) {
+            const id = parseInt(audioFile.substring(3));
+            const song = await getCustomSong(id);
+            if (!song || !song.audio) throw new Error("Audio not found in IndexedDB");
+            if (song.audio instanceof Blob) {
+                return await song.audio.arrayBuffer();
+            } else if (typeof song.audio === 'string' && song.audio.startsWith('data:')) {
+                const res = await fetch(song.audio);
+                return await res.arrayBuffer();
+            } else {
+                throw new Error("Unsupported audio storage type");
+            }
+        }
+
+        async function getCustomSongChart(chartFile) {
+            const parts = chartFile.split(':');
+            const id = parseInt(parts[1]);
+            const levelIdx = parseInt(parts[2]);
+            const song = await getCustomSong(id);
+            if (!song || !song.levels || !song.levels[levelIdx]) throw new Error("Chart not found in IndexedDB");
+            const chartData = song.levels[levelIdx].chart;
+            if (typeof chartData === 'string') {
+                return JSON.parse(chartData);
+            }
+            return chartData;
+        }
+
         async function fetchAudioAsArrayBuffer(url) {
             try {
                 const res = await fetch(url);
@@ -718,10 +779,26 @@
                     fetchAudioAsArrayBuffer('sfx/full_combo.mp3').then(b => audioArrayBuffers.full_combo = b)
                 ];
                 
+                let chartPromise;
+                if (chartFile.startsWith('db:')) {
+                    chartPromise = getCustomSongChart(chartFile);
+                } else if (chartFile.startsWith('local:')) {
+                    chartPromise = Promise.resolve(JSON.parse(localStorage.getItem(chartFile.substring(6))));
+                } else {
+                    chartPromise = fetch(chartFile).then(res => res.json());
+                }
+
+                let audioPromise;
+                if (audioFile.startsWith('db:')) {
+                    audioPromise = getCustomSongAudioArrayBuffer(audioFile);
+                } else {
+                    audioPromise = fetchAudioAsArrayBuffer(audioFile);
+                }
+
                 await Promise.all([
                     ...sfxPromises,
-                    fetch(chartFile).then(res => res.json()).then(data => loadChartData(data)),
-                    fetchAudioAsArrayBuffer(audioFile).then(b => audioArrayBuffers.music = b)
+                    chartPromise.then(data => loadChartData(data)),
+                    audioPromise.then(b => audioArrayBuffers.music = b)
                 ]);
 
                 document.getElementById('readyTitle').textContent = t('decoding') || "解码中...";

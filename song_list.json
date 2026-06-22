@@ -5,6 +5,8 @@
     "artist": "AIGC",
     "audio": "music/music2/music2.mp3",
     "levels": [
+      { "level": 2, "chart": "music/music2/chart2.json" },
+      { "level": 2, "chart": "music/music2/chart2.json" },
       { "level": 2, "chart": "music/music2/chart2.json" }
     ]
   },
