@@ -12,6 +12,7 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
         
@@ -25,6 +26,27 @@
             padding: 15px;
             gap: 15px;
             overflow-y: auto;
+        }
+
+        /* 沉浸式自定义滚动条 */
+        .sidebar::-webkit-scrollbar,
+        .bpm-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track,
+        .bpm-list::-webkit-scrollbar-track {
+            background: rgba(2, 12, 26, 0.3);
+            border-radius: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb,
+        .bpm-list::-webkit-scrollbar-thumb {
+            background: rgba(37, 123, 158, 0.5); /* 沉浸式半透明深蓝 */
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .bpm-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 242, 255, 0.8); /* 悬浮亮青色 */
         }
         
         .panel {
@@ -109,6 +131,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-between; /* 将内容推到顶部和底部 */
             position: relative;
         }
         
@@ -116,7 +139,8 @@
             width: 100%;
             padding: 10px 20px;
             background: #020c1a;
-            border-bottom: 2px solid #257b9e;
+            border-top: 2px solid #257b9e; /* 移到底部，修改为顶部边框 */
+            border-bottom: none; /* 移除底部边框 */
             display: flex;
             align-items: center;
             gap: 20px;
@@ -149,6 +173,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background-color: #051324;
             color: #b3dfff;
             z-index: 10000;
@@ -225,7 +250,7 @@
                 height: 24px;
             }
             .status-bar {
-                bottom: 10px;
+                bottom: 50px;
                 left: 10px;
                 padding: 6px;
                 font-size: 10px;
@@ -234,7 +259,7 @@
         
         .status-bar {
             position: absolute;
-            bottom: 20px;
+            bottom: 60px;
             left: 20px;
             background: rgba(0,0,0,0.7);
             padding: 10px;
@@ -307,9 +332,9 @@
                     <option value="4" selected data-i18n="snap4">1/4 (十六分音符)</option>
                 </select>
             </div>
-            <div class="control-row">
+            <div class="control-row" style="flex-direction: column; align-items: flex-start;">
                 <span data-i18n="inputMode">输入模式:</span>
-                <div class="radio-group" id="noteTypeGroup">
+                <div class="radio-group" id="noteTypeGroup" style="margin-top: 5px;">
                     <button class="radio-btn active" data-val="short" data-i18n="modeShort">短按 (Click)</button>
                     <button class="radio-btn" data-val="long" data-i18n="modeLong">长按 (Drag)</button>
                     <button class="radio-btn" data-val="delete" data-i18n="modeDelete" style="border-color: #c1121f;">删除 (Delete)</button>
@@ -360,6 +385,12 @@
 
     <!-- 右侧主体编辑区 -->
     <div class="main-stage">
+        <div class="canvas-container">
+            <canvas id="editorCanvas" width="600" height="800"></canvas>
+        </div>
+        <div class="status-bar" id="statusBar">
+            Time: 0.000s | Beat: 0.00
+        </div>
         <div class="audio-controls">
             <audio id="audioPlayer" controls></audio>
             <div><span data-i18n="playbackSpeed">播放速度:</span> 
@@ -370,12 +401,6 @@
                     <option value="0.25">0.25x</option>
                 </select>
             </div>
-        </div>
-        <div class="canvas-container">
-            <canvas id="editorCanvas" width="600" height="800"></canvas>
-        </div>
-        <div class="status-bar" id="statusBar">
-            Time: 0.000s | Beat: 0.00
         </div>
     </div>
 
