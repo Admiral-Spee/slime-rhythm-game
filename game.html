@@ -241,7 +241,7 @@
             position: absolute;
             top: 60%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
+            transform: translate(-50%, -50%);
             font-size: 36px;
             font-weight: 900;
             font-style: italic;
@@ -253,22 +253,21 @@
         }
 
         @keyframes judgePopup {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            10% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            20% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(-50%, -70%) scale(0.9); opacity: 0; }
+            0% { transform: translate(-50%, -30%); opacity: 0; }
+            15% { transform: translate(-50%, -50%); opacity: 1; }
+            80% { transform: translate(-50%, -50%); opacity: 1; }
+            100% { transform: translate(-50%, -50%); opacity: 0; }
         }
 
-        .judge-perfect { color: var(--text-perfect); animation: judgePopup 0.4s ease-out forwards; }
-        .judge-great { color: var(--text-great); animation: judgePopup 0.4s ease-out forwards; }
-        .judge-good { color: var(--text-good); animation: judgePopup 0.4s ease-out forwards; }
-        .judge-miss { color: var(--text-miss); animation: judgePopup 0.4s ease-out forwards; }
+        .judge-perfect { color: var(--text-perfect); animation: judgePopup 0.6s ease-out forwards; }
+        .judge-great { color: var(--text-great); animation: judgePopup 0.6s ease-out forwards; }
+        .judge-good { color: var(--text-good); animation: judgePopup 0.6s ease-out forwards; }
+        .judge-miss { color: var(--text-miss); animation: judgePopup 0.6s ease-out forwards; }
 
         /* FC/AP 动画特效 */
         .fc-ap-display {
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.8);
             font-size: 48px;
@@ -288,10 +287,10 @@
         }
 
         @keyframes fcApPopup {
-            0% { transform: translate(-50%, -30%); opacity: 0; }
+            0% { transform: translate(-50%, -20%); opacity: 0; }
             15% { transform: translate(-50%, -50%); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,255,255,1)); }
-            85% { transform: translate(-50%, -60%); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); }
-            100% { transform: translate(-50%, -70%); opacity: 0; }
+            85% { transform: translate(-50%, -50%); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); }
+            100% { transform: translate(-50%, -80%); opacity: 0; }
         }
 
         /* 底部键位提示 */
@@ -1142,9 +1141,9 @@
             judgments[targetNote.startHitType]++;
             updateHUD();
 
-            if (targetNote.startHitType === 'PERFECT') { playSfx(sfxBuffers.perfect); triggerVibrate(); }
-            else if (targetNote.startHitType === 'GREAT') { playSfx(sfxBuffers.great); triggerVibrate(); }
-            else if (targetNote.startHitType === 'GOOD') { playSfx(sfxBuffers.good); triggerVibrate(); }
+            if (targetNote.startHitType === 'PERFECT') { triggerVibrate(); }
+            else if (targetNote.startHitType === 'GREAT') { triggerVibrate(); }
+            else if (targetNote.startHitType === 'GOOD') { triggerVibrate(); }
         }
 
         // --- 音效与震动辅助函数 ---
@@ -1217,7 +1216,6 @@
                         targetNote.hitState = 5; // 标记为正在长按
                         targetNote.startHitType = hitType;
                         score += (hitType === 'PERFECT' ? 500 : (hitType === 'GREAT' ? 400 : 250)); // 起始时先给一半分
-                        triggerJudgeUI('HOLD', 'judge-perfect');
                         createSparks(laneIndex, LANE_COLORS[laneIndex]);
                         laneGlows[laneIndex] = 1.0;
                         playHoldSfx(laneIndex);
@@ -1237,17 +1235,21 @@
                 }
             }
 
-            if (actualAudioHitType === 'PERFECT') {
-                playSfx(sfxBuffers.perfect);
-                triggerVibrate();
-            } else if (actualAudioHitType === 'GREAT') {
-                playSfx(sfxBuffers.great);
-                triggerVibrate();
-            } else if (actualAudioHitType === 'GOOD') {
-                playSfx(sfxBuffers.good);
+            if (actualAudioHitType !== 'EMPTY' && targetNote && targetNote.endTimeMs) {
                 triggerVibrate();
             } else {
-                playSfx(sfxBuffers.empty);
+                if (actualAudioHitType === 'PERFECT') {
+                    playSfx(sfxBuffers.perfect);
+                    triggerVibrate();
+                } else if (actualAudioHitType === 'GREAT') {
+                    playSfx(sfxBuffers.great);
+                    triggerVibrate();
+                } else if (actualAudioHitType === 'GOOD') {
+                    playSfx(sfxBuffers.good);
+                    triggerVibrate();
+                } else {
+                    playSfx(sfxBuffers.empty);
+                }
             }
         }
 
