@@ -685,7 +685,8 @@
             empty: null,
             long: null,
             all_perfect: null,
-            full_combo: null
+            full_combo: null,
+            clear: null
         };
 
         const DB_NAME = 'SlimeRhythmGameDB';
@@ -776,7 +777,8 @@
                     fetchAudioAsArrayBuffer('sfx/empty.mp3').then(b => audioArrayBuffers.empty = b),
                     fetchAudioAsArrayBuffer('sfx/long.mp3').then(b => audioArrayBuffers.long = b),
                     fetchAudioAsArrayBuffer('sfx/all_perfect.mp3').then(b => audioArrayBuffers.all_perfect = b),
-                    fetchAudioAsArrayBuffer('sfx/full_combo.mp3').then(b => audioArrayBuffers.full_combo = b)
+                    fetchAudioAsArrayBuffer('sfx/full_combo.mp3').then(b => audioArrayBuffers.full_combo = b),
+                    fetchAudioAsArrayBuffer('sfx/clear.mp3').then(b => audioArrayBuffers.clear = b)
                 ];
                 
                 let chartPromise;
@@ -812,6 +814,7 @@
                 sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
                 sfxBuffers.all_perfect = await decodeAudioSafe(audioArrayBuffers.all_perfect);
                 sfxBuffers.full_combo = await decodeAudioSafe(audioArrayBuffers.full_combo);
+                sfxBuffers.clear = await decodeAudioSafe(audioArrayBuffers.clear);
                 
                 loadedAudioBuffer = await decodeAudioSafe(audioArrayBuffers.music);
                 
@@ -1802,19 +1805,24 @@
             if (lastNote && !fcApShown && currentBeat >= lastNoteBeat + 2) {
                 fcApShown = true;
                 const totalHits = judgments.PERFECT + judgments.GREAT + judgments.GOOD + judgments.MISS;
-                if (totalHits > 0 && judgments.MISS === 0) {
+                if (totalHits > 0) {
                     const fcApDisplay = document.getElementById('fcApDisplay');
                     fcApDisplay.style.display = 'block';
                     fcApDisplay.style.animation = 'none';
                     void fcApDisplay.offsetWidth; // 触发重绘重置动画
                     fcApDisplay.style.animation = 'fcApPopup 5s ease-out forwards';
                     
-                    if (judgments.GREAT === 0 && judgments.GOOD === 0) {
-                        fcApDisplay.textContent = 'ALL PERFECT';
-                        playSfx(sfxBuffers.all_perfect);
+                    if (judgments.MISS === 0) {
+                        if (judgments.GREAT === 0 && judgments.GOOD === 0) {
+                            fcApDisplay.textContent = 'ALL PERFECT';
+                            playSfx(sfxBuffers.all_perfect);
+                        } else {
+                            fcApDisplay.textContent = 'FULL COMBO';
+                            playSfx(sfxBuffers.full_combo);
+                        }
                     } else {
-                        fcApDisplay.textContent = 'FULL COMBO';
-                        playSfx(sfxBuffers.full_combo);
+                        fcApDisplay.textContent = 'SHOW CLEAR';
+                        playSfx(sfxBuffers.clear);
                     }
                 }
             }

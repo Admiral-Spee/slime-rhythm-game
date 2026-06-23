@@ -913,6 +913,37 @@
                 }
             }
 
+            // 2.7 绘制 BPM 变动点
+            if (chartData.bpmList && chartData.bpmList.length > 0) {
+                chartData.bpmList.forEach(tp => {
+                    const y = PLAYHEAD_Y - (tp.beat - currentBeat) * BEAT_HEIGHT;
+                    if (y < -50 || y > canvas.height + 50) return;
+                    
+                    // 检查是否与 Fever 点重叠 (y 距离相近)
+                    let overlap = false;
+                    if (chartData.feverList) {
+                        overlap = chartData.feverList.some(fp => Math.abs(fp.beat - tp.beat) * BEAT_HEIGHT < 15);
+                    }
+                    
+                    ctx.strokeStyle = '#ffcc00';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(TRACK_OFFSET_X + CANVAS_WIDTH, y);
+                    ctx.lineTo(TRACK_OFFSET_X + CANVAS_WIDTH + 10, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.font = 'bold 12px sans-serif';
+                    let textY = y + 4;
+                    if (overlap) {
+                        textY += 16; // 分多行显示，向下偏移
+                    }
+                    ctx.fillText(`${tp.bpm} BPM`, TRACK_OFFSET_X + CANVAS_WIDTH + 15, textY);
+                });
+            }
+
             // 3. 绘制判定线 (播放头)
             ctx.strokeStyle = '#ff0055';
             ctx.lineWidth = 3;
@@ -951,8 +982,20 @@
 
             // 5. 绘制当前正在拖拽构建的长按音符
             if (isDragging && dragStartNote) {
+                let currentEndBeat = mouseBeat;
+                if (currentEndBeat > dragStartNote.beat) {
+                    let nextNoteBeat = Infinity;
+                    chartData.notes.forEach(n => {
+                        if (n.lane === dragStartNote.lane && n.beat > dragStartNote.beat) {
+                            if (n.beat < nextNoteBeat) nextNoteBeat = n.beat;
+                        }
+                    });
+                    if (currentEndBeat > nextNoteBeat) {
+                        currentEndBeat = nextNoteBeat;
+                    }
+                }
                 const startY = PLAYHEAD_Y - (dragStartNote.beat - currentBeat) * BEAT_HEIGHT;
-                const currentY = PLAYHEAD_Y - (mouseBeat - currentBeat) * BEAT_HEIGHT;
+                const currentY = PLAYHEAD_Y - (currentEndBeat - currentBeat) * BEAT_HEIGHT;
                 const x = TRACK_OFFSET_X + dragStartNote.lane * laneWidth;
                 
                 ctx.fillStyle = LANE_COLORS[dragStartNote.lane];
@@ -1166,13 +1209,22 @@
             mouseBeat = getQuantizedBeat(pos.y);
 
             if (e.button === 2 || currentNoteType === 'delete') { // 右键删除或处于删除模式下左键删除
-                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.15)); // 触控删除调大到 0.15 拍，更容易点中
+                chartData.notes = chartData.notes.filter(n => {
+                    if (n.lane !== mouseLane) return true;
+                    const nEnd = n.endBeat !== undefined ? n.endBeat : n.beat;
+                    return !(mouseBeat >= n.beat - 0.15 && mouseBeat <= nEnd + 0.15);
+                });
                 return;
             }
 
             if (e.button === 0) { // 左键添加
-                // 避免重复添加
-                chartData.notes = chartData.notes.filter(n => !(n.lane === mouseLane && Math.abs(n.beat - mouseBeat) < 0.05));
+                // 避免重叠添加
+                const isOverlapping = chartData.notes.some(n => {
+                    if (n.lane !== mouseLane) return false;
+                    const nEnd = n.endBeat !== undefined ? n.endBeat : n.beat;
+                    return mouseBeat >= n.beat - 0.05 && mouseBeat <= nEnd + 0.05;
+                });
+                if (isOverlapping) return;
                 
                 const newNote = { beat: mouseBeat, lane: mouseLane };
                 
@@ -1188,7 +1240,19 @@
         window.addEventListener('mouseup', (e) => {
             if (isDragging && dragStartNote) {
                 if (mouseBeat > dragStartNote.beat) {
-                    dragStartNote.endBeat = mouseBeat;
+                    let endBeat = mouseBeat;
+                    let nextNoteBeat = Infinity;
+                    chartData.notes.forEach(n => {
+                        if (n.lane === dragStartNote.lane && n.beat > dragStartNote.beat) {
+                            if (n.beat < nextNoteBeat) nextNoteBeat = n.beat;
+                        }
+                    });
+                    if (endBeat > nextNoteBeat) {
+                        endBeat = nextNoteBeat;
+                    }
+                    if (endBeat > dragStartNote.beat) {
+                        dragStartNote.endBeat = endBeat;
+                    }
                 }
                 chartData.notes.push(dragStartNote);
                 isDragging = false;
