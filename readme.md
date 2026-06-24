@@ -4,8 +4,10 @@
 
 一个基于 HTML5 Canvas 和 Web Audio API 开发的轻量级、节拍驱动下落式音乐游戏。本项目自带一个功能完善的 Web 端可视化谱面编辑器。
 
+**在线游玩**：https://admiral-spee.github.io/slime-rhythm-game/
+
 ## 游戏本体
-游戏主要参照了 Rift of the NecroDancer 的节拍式下落方式，但没有复杂多变的音符移动机制，更接近传统的下落式音游。游戏包含了 PERFECT, GREAT, GOOD, MISS 四种判定，支持长按音符。
+游戏主要参照了《节奏间隙》的节拍式下落方式，但没有复杂多变的音符移动机制，更接近传统的下落式音游。游戏包含了 PERFECT, GREAT, GOOD, MISS 四种判定，支持长按音符。
 
 - **双平台适配**：
   - PC端使用键盘输入（S, D, J, K）。
@@ -20,7 +22,7 @@
 游戏本身支持大部分主流音频格式，包括MP3、OGG、WAV、FLAC等，但部分浏览器可能对部分音频格式有兼容性问题。
 
 ### 导入自制谱面
-现在游戏支持便捷上传自制谱面与外部歌曲了！
+现在游戏支持便捷上传自制谱面与外部歌曲了！不再需要本地运行并修改配置文件。
 
 对于游戏中已有的歌曲：
 - 点击歌曲详情区域的`+`号按钮。
@@ -44,7 +46,6 @@
 
 ### 编辑器操作指南
 
-在浏览器中打开 `editor.html` 后：
 - **添加音符**：鼠标左键点击网格。
 - **添加长按音符**：在左侧面板将输入模式切换为“长按 (Drag)”，然后在网格上按住左键向上拖动。
 - **删除音符**：鼠标右键点击已有音符。
@@ -52,7 +53,7 @@
 - **缩放轨道**：按住 `Ctrl` 键 + 鼠标滚轮。
 - **播放/暂停**：空格键 (Space)。
 
-## 如何运行
+## 如何本地运行
 
 由于现代浏览器的安全策略限制（跨域 CORS 以及 Web Audio API 需要用户交互），**请勿直接双击打开 HTML 文件**。必须通过本地 HTTP 服务器运行此项目。
 
@@ -143,6 +144,8 @@ slime-rhythm-game/
 
 A lightweight, beat-driven falling-style rhythm game based on HTML5 Canvas and the Web Audio API. This project comes with a fully functional web-based visual chart editor.
 
+**Play online**：https://admiral-spee.github.io/slime-rhythm-game/
+
 ## The Game
 The game mainly references the beat-based falling mechanics of *Rift of the NecroDancer*, but without overly complex note movement mechanics, making it closer to traditional falling-style rhythm games. The game includes four types of judgments: PERFECT, GREAT, GOOD, and MISS, and supports hold notes.
 
@@ -159,7 +162,7 @@ The game mainly references the beat-based falling mechanics of *Rift of the Necr
 The game itself supports most mainstream audio formats, including MP3, OGG, WAV, FLAC, etc., but some browsers may have compatibility issues with certain audio formats.
 
 ### Importing Custom Charts
-Now the game supports convenient uploading of custom charts and external songs!
+Now the game supports convenient uploading of custom charts and external songs! No need to run the project locally and edit the configuration file anymore.
 
 For songs already in the game:
 - Click the `+` button in the song detail area.
@@ -183,7 +186,6 @@ For external songs you want to upload:
 
 ### Editor Guide
 
-After opening `editor.html` in your browser:
 - **Add Note**: Left-click on the grid.
 - **Add Hold Note**: Switch the input mode to "Drag (Hold)" in the left panel, then hold the left mouse button and drag upwards on the grid.
 - **Delete Note**: Right-click on an existing note.
@@ -191,7 +193,7 @@ After opening `editor.html` in your browser:
 - **Zoom Lanes**: Hold `Ctrl` + Mouse wheel.
 - **Play / Pause**: `Space` bar.
 
-## How to Run
+## How to Run Locally
 
 Due to modern browser security policies (CORS and Web Audio API requiring user interaction), **do not double-click the HTML files directly to open them**. You must run this project through a local HTTP server.
 
