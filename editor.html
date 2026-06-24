@@ -250,7 +250,7 @@
                 height: 24px;
             }
             .status-bar {
-                bottom: 50px;
+                top: 10px;
                 left: 10px;
                 padding: 6px;
                 font-size: 10px;
@@ -259,7 +259,7 @@
         
         .status-bar {
             position: absolute;
-            bottom: 60px;
+            top: 20px;
             left: 20px;
             background: rgba(0,0,0,0.7);
             padding: 10px;
@@ -502,15 +502,44 @@
         let timingPoints = []; // 内部缓存的时间节点
         
         const LANE_COLORS = ['#ff9800', '#4caf50', '#9c27b0', '#00bcd4'];
-        const CANVAS_WIDTH = 400;
-        const TRACK_OFFSET_X = 100; // 将轨道往右平移100像素，留出左侧空间
+        let CANVAS_WIDTH = 400;
+        let TRACK_OFFSET_X = 100; // 将轨道往右平移留出空间
         let BEAT_HEIGHT = 200; // 每一拍在屏幕上占据的像素 (Zoom)
         let SNAP = 4; // 吸附精度 (默认1/4拍)
-        const PLAYHEAD_Y = 600; // 判定线(播放头)在画布上的固定Y坐标
+        let PLAYHEAD_Y = 600; // 判定线(播放头)在画布上的固定Y坐标
 
         // DOM元素
         const canvas = document.getElementById('editorCanvas');
         const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-container');
+            if (!container) return;
+            const dpr = window.devicePixelRatio || 1;
+            const cssWidth = container.clientWidth;
+            const cssHeight = container.clientHeight;
+            
+            canvas.style.width = cssWidth + 'px';
+            canvas.style.height = cssHeight + 'px';
+            canvas.width = cssWidth * dpr;
+            canvas.height = cssHeight * dpr;
+            ctx.scale(dpr, dpr);
+            
+            const isMobile = window.innerWidth <= 900;
+            if (isMobile) {
+                // 轨道整体宽度减小四分之一 (0.7 * 0.75 = 0.525)
+                CANVAS_WIDTH = Math.min(cssWidth * 0.525, 525);
+                TRACK_OFFSET_X = (cssWidth - CANVAS_WIDTH) / 2;
+                PLAYHEAD_Y = cssHeight * 0.75;
+            } else {
+                // PC 端同步减小一点点比例
+                CANVAS_WIDTH = Math.min(450, cssWidth * 0.4);
+                TRACK_OFFSET_X = (cssWidth - CANVAS_WIDTH) / 2;
+                PLAYHEAD_Y = cssHeight * 0.8;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
         const audioPlayer = document.getElementById('audioPlayer');
         const statusBar = document.getElementById('statusBar');
         const snapSelect = document.getElementById('snapSelect');
@@ -743,12 +772,19 @@
                 smoothAudioTime = audioPlayer.currentTime;
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cssWidth = canvas.clientWidth || CANVAS_WIDTH + 2 * TRACK_OFFSET_X;
+            const cssHeight = canvas.clientHeight || 800;
+            const isMobile = window.innerWidth <= 900;
+            const fontSize = isMobile ? 16 : 12;
+            const measureLineWidth = isMobile ? 4 : 3;
+            const beatLineWidth = isMobile ? 3 : 2;
+
+            ctx.clearRect(0, 0, cssWidth, cssHeight);
             const currentMs = smoothAudioTime * 1000;
             const currentBeat = timeToBeat(currentMs);
             
             // 更新状态栏
-            statusBar.innerHTML = `Time: ${(currentMs/1000).toFixed(3)}s | Beat: ${currentBeat.toFixed(2)}<br>Mouse Beat: ${mouseBeat.toFixed(2)} | Lane: ${mouseLane}`;
+            statusBar.innerHTML = `Time: ${(currentMs/1000).toFixed(3)}s<br>Beat: ${currentBeat.toFixed(2)}<br>Mouse Beat: ${mouseBeat.toFixed(2)}<br>Lane: ${mouseLane}`;
 
             // --- 预览音效触发逻辑 ---
             if (audioPlayer.paused) {
@@ -793,9 +829,9 @@
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(TRACK_OFFSET_X, 0);
-            ctx.lineTo(TRACK_OFFSET_X, canvas.height);
+            ctx.lineTo(TRACK_OFFSET_X, cssHeight);
             ctx.moveTo(TRACK_OFFSET_X + CANVAS_WIDTH, 0);
-            ctx.lineTo(TRACK_OFFSET_X + CANVAS_WIDTH, canvas.height);
+            ctx.lineTo(TRACK_OFFSET_X + CANVAS_WIDTH, cssHeight);
             ctx.stroke();
 
             for (let i = 1; i < 4; i++) {
@@ -803,13 +839,13 @@
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(TRACK_OFFSET_X + i * laneWidth, 0);
-                ctx.lineTo(TRACK_OFFSET_X + i * laneWidth, canvas.height);
+                ctx.lineTo(TRACK_OFFSET_X + i * laneWidth, cssHeight);
                 ctx.stroke();
             }
 
             // 2. 绘制节拍网格 (动态计算当前视野内的节拍)
             const beatsInViewTop = currentBeat + (PLAYHEAD_Y / BEAT_HEIGHT);
-            const beatsInViewBottom = currentBeat - ((canvas.height - PLAYHEAD_Y) / BEAT_HEIGHT);
+            const beatsInViewBottom = currentBeat - ((cssHeight - PLAYHEAD_Y) / BEAT_HEIGHT);
             
             const startGridBeat = Math.floor(beatsInViewBottom);
             const endGridBeat = Math.ceil(beatsInViewTop);
@@ -819,7 +855,7 @@
                     const drawBeat = b + (s / SNAP);
                     const y = PLAYHEAD_Y - (drawBeat - currentBeat) * BEAT_HEIGHT;
                     
-                    if (y < 0 || y > canvas.height) continue;
+                    if (y < 0 || y > cssHeight) continue;
 
                     ctx.beginPath();
                     ctx.moveTo(TRACK_OFFSET_X, y);
@@ -829,11 +865,11 @@
                         const isMeasureLine = (b % 4 === 0);
                         // 整数拍：亮色实线，写字
                         ctx.strokeStyle = isMeasureLine ? 'rgba(255, 170, 0, 0.8)' : 'rgba(255, 255, 255, 0.4)';
-                        ctx.lineWidth = isMeasureLine ? 3 : 2;
+                        ctx.lineWidth = isMeasureLine ? measureLineWidth : beatLineWidth;
                         ctx.stroke();
                         
                         ctx.fillStyle = isMeasureLine ? 'rgba(255, 170, 0, 1)' : 'rgba(255, 255, 255, 0.6)';
-                        ctx.font = isMeasureLine ? 'bold 12px sans-serif' : '12px sans-serif';
+                        ctx.font = isMeasureLine ? `bold ${fontSize}px sans-serif` : `${fontSize}px sans-serif`;
                         ctx.textAlign = 'right'; // 靠右对齐，放置在轨道左侧
                         
                         const displayBeat = (b % 4) + 1; // 转换为小节内的相对拍数 (1, 2, 3, 4)
@@ -877,7 +913,7 @@
                         ctx.setLineDash([]);
                         
                         ctx.fillStyle = '#ff9800';
-                        ctx.font = '12px sans-serif';
+                        ctx.font = `${fontSize}px sans-serif`;
                         ctx.fillText('Fever Start', TRACK_OFFSET_X + CANVAS_WIDTH + 15, y + 4);
                     } else if (fp.type === 'end') {
                         if (isFever) {
@@ -898,7 +934,7 @@
                         ctx.setLineDash([]);
                         
                         ctx.fillStyle = '#ff9800';
-                        ctx.font = '12px sans-serif';
+                        ctx.font = `${fontSize}px sans-serif`;
                         ctx.fillText('Fever End', TRACK_OFFSET_X + CANVAS_WIDTH + 15, y + 4);
                     }
                 });
@@ -917,7 +953,7 @@
             if (chartData.bpmList && chartData.bpmList.length > 0) {
                 chartData.bpmList.forEach(tp => {
                     const y = PLAYHEAD_Y - (tp.beat - currentBeat) * BEAT_HEIGHT;
-                    if (y < -50 || y > canvas.height + 50) return;
+                    if (y < -50 || y > cssHeight + 50) return;
                     
                     // 检查是否与 Fever 点重叠 (y 距离相近)
                     let overlap = false;
@@ -935,10 +971,10 @@
                     ctx.setLineDash([]);
                     
                     ctx.fillStyle = '#ffcc00';
-                    ctx.font = 'bold 12px sans-serif';
+                    ctx.font = `bold ${fontSize}px sans-serif`;
                     let textY = y + 4;
                     if (overlap) {
-                        textY += 16; // 分多行显示，向下偏移
+                        textY += (fontSize + 4); // 分多行显示，向下偏移
                     }
                     ctx.fillText(`${tp.bpm} BPM`, TRACK_OFFSET_X + CANVAS_WIDTH + 15, textY);
                 });
@@ -971,7 +1007,7 @@
                 }
                 
                 // 绘制头部块
-                if (y >= -50 && y <= canvas.height + 50) {
+                if (y >= -50 && y <= cssHeight + 50) {
                     ctx.fillStyle = LANE_COLORS[note.lane];
                     ctx.fillRect(x + 5, y - 10, laneWidth - 10, 20);
                     ctx.strokeStyle = '#fff';
@@ -1017,14 +1053,12 @@
             return Math.round(clickedBeat * SNAP) / SNAP;
         }
 
-        // 获取考虑了可能被 CSS 缩放过的画布真实映射坐标
+        // 获取画布真实映射坐标
         function getCanvasPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
             return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
             };
         }
 
@@ -1048,11 +1082,9 @@
 
         function getTouchCanvasPos(touch) {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
             return {
-                x: (touch.clientX - rect.left) * scaleX,
-                y: (touch.clientY - rect.top) * scaleY
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
             };
         }
 
@@ -1094,13 +1126,16 @@
 
                 if (!hasTouchMoved && dist > 10) {
                     hasTouchMoved = true;
-                    // 如果不是 'long' 模式，或者滑动的初始触摸点是在轨道外面（左/右两侧空白处）
-                    // 轨道范围：TRACK_OFFSET_X (100px) 到 TRACK_OFFSET_X + CANVAS_WIDTH (500px)
                     const isOutsideTrack = (touchStartX < TRACK_OFFSET_X || touchStartX > TRACK_OFFSET_X + CANVAS_WIDTH);
-                    if (currentNoteType !== 'long' || isOutsideTrack) {
-                        isTouchScrolling = true;
-                    } else {
-                        // 在 'long' 模式下轨道内滑动，触发模拟鼠标 mousedown，准备绘制长按
+                    
+                    const touchStartLane = Math.max(0, Math.min(3, Math.floor((touchStartX - TRACK_OFFSET_X) / (CANVAS_WIDTH / 4))));
+                    const touchStartTargetBeat = timeToBeat(smoothAudioTime * 1000) + (PLAYHEAD_Y - touchStartY) / BEAT_HEIGHT;
+                    const isNearTail = chartData.notes.some(n => {
+                        if (n.lane !== touchStartLane || n.endBeat === undefined) return false;
+                        return Math.abs(touchStartTargetBeat - n.endBeat) <= 0.2; // 0.2 拍容差
+                    });
+
+                    if ((currentNoteType === 'long' || isNearTail) && !isOutsideTrack) {
                         isTouchScrolling = false;
                         const mouseEvent = new MouseEvent('mousedown', {
                             clientX: e.touches[0].clientX,
@@ -1108,6 +1143,8 @@
                             button: 0
                         });
                         canvas.dispatchEvent(mouseEvent);
+                    } else {
+                        isTouchScrolling = true;
                     }
                 }
 
@@ -1218,6 +1255,19 @@
             }
 
             if (e.button === 0) { // 左键添加
+                // 检查是否是拖动现有长按音符的尾部
+                const clickedTailNoteIndex = chartData.notes.findIndex(n => {
+                    if (n.lane !== mouseLane || n.endBeat === undefined) return false;
+                    return Math.abs(mouseBeat - n.endBeat) <= 0.2; // 0.2 拍容差
+                });
+
+                if (clickedTailNoteIndex >= 0) {
+                    const tailNote = chartData.notes.splice(clickedTailNoteIndex, 1)[0];
+                    isDragging = true;
+                    dragStartNote = { beat: tailNote.beat, lane: tailNote.lane };
+                    return;
+                }
+
                 // 避免重叠添加
                 const isOverlapping = chartData.notes.some(n => {
                     if (n.lane !== mouseLane) return false;
