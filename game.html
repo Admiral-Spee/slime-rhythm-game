@@ -228,13 +228,10 @@
         }
 
         .hud-item {
-            background: var(--hud-bg);
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border-sub);
-            font-family: monospace;
+            font-family: sans-serif;
+            font-weight: bold;
             font-size: 16px;
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.45);
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
         }
 
         .score-val {
@@ -242,9 +239,74 @@
             font-weight: bold;
         }
 
+        .combo-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
+            position: relative;
+            top: 100px;
+            right: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            visibility: hidden;
+        }
+
         .combo-val {
             color: var(--text-combo);
-            font-weight: bold;
+            font-weight: 900;
+            font-size: 36px;
+        }
+
+        .combo-label {
+            font-size: 14px;
+            letter-spacing: 0px;
+            margin-top: 4px;
+            color: white;
+        }
+
+        .combo-white .combo-val {
+            color: white !important;
+            background: none !important;
+            -webkit-background-clip: border-box !important;
+        }
+
+        .combo-pink .combo-val {
+            color: #b6ffdf !important;
+            background: none !important;
+            -webkit-background-clip: border-box !important;
+        }
+
+        .combo-rainbow .combo-val {
+            background: linear-gradient(90deg, #ffb347, #ffde59, #85e085, #4ecdc4) !important;
+            background-size: 100% 100% !important;
+            color: transparent !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            animation: rainbow-anim 2s linear infinite;
+        }
+
+        @keyframes rainbow-anim {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: 0 0;
+            }
+        }
+
+        @keyframes combo-pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* 判定字样动画效果 */
@@ -519,8 +581,11 @@
         <!-- 游戏舞台 -->
         <div class="stage" id="stageContainer">
             <div class="hud">
-                <div class="hud-item">SCORE: <span id="scoreText" class="score-val">000000</span></div>
-                <div class="hud-item">COMBO: <span id="comboText" class="combo-val">0</span></div>
+                <div class="hud-item">SCORE <span id="scoreText" class="score-val">000000</span></div>
+                <div class="hud-item combo-item">
+                    <div id="comboText" class="combo-val">0</div>
+                    <div class="combo-label">COMBO</div>
+                </div>
             </div>
 
             <!-- 动态判定提示 -->
@@ -1238,11 +1303,15 @@
             stopHoldSfx(targetNote.lane);
             targetNote.hitState = targetNote.startHitType === 'PERFECT' ? 1 : (targetNote.startHitType === 'GREAT' ? 4 : 2);
             // 加上长按释放时的尾部分数
-            const multiplier = activeFeverIndex !== -1 ? 1.2 : 1.0;
+            const multiplier = getScoreMultiplier();
             const baseScore = targetNote.startHitType === 'PERFECT' ? 500 : (targetNote.startHitType === 'GREAT' ? 400 : 250);
             score += Math.floor(baseScore * multiplier);
-            combo++;
-            if (combo > maxCombo) maxCombo = combo;
+            if (targetNote.startHitType !== 'GOOD') {
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+            } else {
+                combo = 0;
+            }
 
             const uiClass = targetNote.startHitType === 'PERFECT' ? 'judge-perfect' : (targetNote.startHitType === 'GREAT' ? 'judge-great' : 'judge-good');
             triggerJudgeUI(targetNote.startHitType, uiClass);
@@ -1298,6 +1367,14 @@
             }
         }
 
+        function getScoreMultiplier() {
+            let comboBonus = 0;
+            if (combo >= 150) comboBonus = 0.3;
+            else if (combo >= 100) comboBonus = 0.2;
+            else if (combo >= 50) comboBonus = 0.1;
+            return (activeFeverIndex !== -1 ? 1.2 : 1.0) * (1 + comboBonus);
+        }
+
         // --- 核心判定逻辑 ---
         function judgeHit(laneIndex) {
             if (!isPlaying) return;
@@ -1325,19 +1402,29 @@
                     if (targetNote.endTimeMs) {
                         targetNote.hitState = 5; // 标记为正在长按
                         targetNote.startHitType = hitType;
-                        const multiplier = activeFeverIndex !== -1 ? 1.2 : 1.0;
+                        const multiplier = getScoreMultiplier();
                         const baseScore = hitType === 'PERFECT' ? 500 : (hitType === 'GREAT' ? 400 : 250);
                         score += Math.floor(baseScore * multiplier); // 起始时先给一半分
+                        if (hitType !== 'GOOD') {
+                            combo++; // 头判增加连击
+                            if (combo > maxCombo) maxCombo = combo;
+                        } else {
+                            combo = 0;
+                        }
                         createSparks(laneIndex, LANE_COLORS[laneIndex]);
                         laneGlows[laneIndex] = 1.0;
                         playHoldSfx(laneIndex);
                     } else {
                         // 普通音符直接结算
                         targetNote.hitState = hitType === 'PERFECT' ? 1 : (hitType === 'GREAT' ? 4 : 2);
-                        const multiplier = activeFeverIndex !== -1 ? 1.2 : 1.0;
+                        const multiplier = getScoreMultiplier();
                         const baseScore = hitType === 'PERFECT' ? 1000 : (hitType === 'GREAT' ? 800 : 500);
                         score += Math.floor(baseScore * multiplier);
-                        combo++;
+                        if (hitType !== 'GOOD') {
+                            combo++;
+                        } else {
+                            combo = 0;
+                        }
                         triggerJudgeUI(hitType, hitType === 'PERFECT' ? 'judge-perfect' : (hitType === 'GREAT' ? 'judge-great' : 'judge-good'));
                         createSparks(laneIndex, hitType === 'PERFECT' ? '#ffcc00' : (hitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
                         laneGlows[laneIndex] = 1.0;
@@ -1379,7 +1466,27 @@
 
         function updateHUD() {
             scoreText.textContent = String(score).padStart(6, '0');
-            comboText.textContent = combo;
+            const comboContainer = comboText.parentElement;
+
+            comboContainer.style.visibility = (combo >= 2) ? 'visible' : 'hidden';
+
+            if (comboText.textContent !== String(combo)) {
+                comboText.textContent = combo;
+                if (combo > 0) {
+                    comboContainer.style.animation = 'none';
+                    comboContainer.offsetHeight; // trigger reflow
+                    comboContainer.style.animation = 'combo-pop 0.15s ease-out';
+                }
+            }
+            comboContainer.classList.remove('combo-white', 'combo-pink', 'combo-rainbow');
+
+            if (combo <= 50) {
+                comboContainer.classList.add('combo-white');
+            } else if (combo <= 100) {
+                comboContainer.classList.add('combo-pink');
+            } else {
+                comboContainer.classList.add('combo-rainbow');
+            }
         }
 
         // --- 键盘与高亮映射绑定 ---
@@ -1887,7 +1994,7 @@
 
             // 2. 批量绘制网格线描边 (性能优化：合并路径，避免每格重复描边与高斯模糊计算)
             ctx.beginPath();
-            
+
             // 纵向分割线 (5条)
             for (let l = 0; l <= 4; l++) {
                 const ptBottom = projectPerspectiveEdge(l, 0);
@@ -1895,7 +2002,7 @@
                 ctx.moveTo(ptBottom.x, ptBottom.y);
                 ctx.lineTo(ptTop.x, ptTop.y);
             }
-            
+
             // 横向分割线
             for (let d = 0; d <= VISIBLE_BEATS; d++) {
                 const ptLeft = projectPerspectiveEdge(0, d);
