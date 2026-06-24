@@ -965,5 +965,14 @@
       "endBeat": 259
     }
   ],
-  "feverList": []
+  "feverList": [
+    {
+      "beat": 148,
+      "type": "start"
+    },
+    {
+      "beat": 209,
+      "type": "end"
+    }
+  ]
 }

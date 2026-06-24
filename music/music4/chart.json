@@ -1104,5 +1104,15 @@
       "lane": 3,
       "endBeat": 300
     }
+  ],
+  "feverList": [
+    {
+      "beat": 196,
+      "type": "start"
+    },
+    {
+      "beat": 260,
+      "type": "end"
+    }
   ]
 }

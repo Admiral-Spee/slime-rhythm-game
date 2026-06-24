@@ -1368,5 +1368,15 @@
       "beat": 374,
       "lane": 3
     }
+  ],
+  "feverList": [
+    {
+      "beat": 182,
+      "type": "start"
+    },
+    {
+      "beat": 244,
+      "type": "end"
+    }
   ]
 }

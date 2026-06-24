@@ -5,7 +5,16 @@
       "bpm": 160
     }
   ],
-  "feverList": [],
+  "feverList": [
+    {
+      "beat": 144,
+      "type": "start"
+    },
+    {
+      "beat": 212,
+      "type": "end"
+    }
+  ],
   "notes": [
     {
       "beat": 4,
