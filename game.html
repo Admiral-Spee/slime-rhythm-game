@@ -1283,46 +1283,51 @@
 
             if (targetNote) {
                 const diff = targetNote.endTimeMs - currentMs;
-                if (diff > JUDGE_WINDOWS.GOOD) {
-                    // 松开太早了，判定为Miss/断连
+                const absDiff = Math.abs(diff);
+
+                if (absDiff <= JUDGE_WINDOWS.PERFECT) {
+                    finishHold(targetNote, 'PERFECT');
+                } else if (absDiff <= JUDGE_WINDOWS.GREAT) {
+                    finishHold(targetNote, 'GREAT');
+                } else if (absDiff <= JUDGE_WINDOWS.GOOD) {
+                    finishHold(targetNote, 'GOOD');
+                } else {
+                    // 松开太早或太晚，判定为Miss/断连
                     stopHoldSfx(laneIndex);
                     targetNote.hitState = 3;
                     combo = 0;
                     triggerJudgeUI('MISS', 'judge-miss');
                     judgments.MISS++;
                     updateHUD();
-                } else {
-                    // 正常在判定区间内提前一点点松开也算完成
-                    finishHold(targetNote);
                 }
             }
         }
 
         // 完成长按逻辑
-        function finishHold(targetNote) {
+        function finishHold(targetNote, tailHitType) {
             stopHoldSfx(targetNote.lane);
-            targetNote.hitState = targetNote.startHitType === 'PERFECT' ? 1 : (targetNote.startHitType === 'GREAT' ? 4 : 2);
+            targetNote.hitState = tailHitType === 'PERFECT' ? 1 : (tailHitType === 'GREAT' ? 4 : 2);
             // 加上长按释放时的尾部分数
             const multiplier = getScoreMultiplier();
-            const baseScore = targetNote.startHitType === 'PERFECT' ? 500 : (targetNote.startHitType === 'GREAT' ? 400 : 250);
+            const baseScore = tailHitType === 'PERFECT' ? 500 : (tailHitType === 'GREAT' ? 400 : 250);
             score += Math.floor(baseScore * multiplier);
-            if (targetNote.startHitType !== 'GOOD') {
+            if (tailHitType !== 'GOOD') {
                 combo++;
                 if (combo > maxCombo) maxCombo = combo;
             } else {
                 combo = 0;
             }
 
-            const uiClass = targetNote.startHitType === 'PERFECT' ? 'judge-perfect' : (targetNote.startHitType === 'GREAT' ? 'judge-great' : 'judge-good');
-            triggerJudgeUI(targetNote.startHitType, uiClass);
-            createSparks(targetNote.lane, LANE_COLORS[targetNote.lane]);
+            const uiClass = tailHitType === 'PERFECT' ? 'judge-perfect' : (tailHitType === 'GREAT' ? 'judge-great' : 'judge-good');
+            triggerJudgeUI(tailHitType, uiClass);
+            createSparks(targetNote.lane, tailHitType === 'PERFECT' ? '#ffcc00' : (tailHitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
             laneGlows[targetNote.lane] = 1.0;
-            judgments[targetNote.startHitType]++;
+            judgments[tailHitType]++;
             updateHUD();
 
-            if (targetNote.startHitType === 'PERFECT') { triggerVibrate(); }
-            else if (targetNote.startHitType === 'GREAT') { triggerVibrate(); }
-            else if (targetNote.startHitType === 'GOOD') { triggerVibrate(); }
+            if (tailHitType === 'PERFECT') { triggerVibrate(); }
+            else if (tailHitType === 'GREAT') { triggerVibrate(); }
+            else if (tailHitType === 'GOOD') { triggerVibrate(); }
         }
 
         // --- 音效与震动辅助函数 ---
@@ -1411,7 +1416,13 @@
                         } else {
                             combo = 0;
                         }
-                        createSparks(laneIndex, LANE_COLORS[laneIndex]);
+
+                        // 显示头判反馈并记录
+                        const uiClass = hitType === 'PERFECT' ? 'judge-perfect' : (hitType === 'GREAT' ? 'judge-great' : 'judge-good');
+                        triggerJudgeUI(hitType, uiClass);
+                        judgments[hitType]++;
+
+                        createSparks(laneIndex, hitType === 'PERFECT' ? '#ffcc00' : (hitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
                         laneGlows[laneIndex] = 1.0;
                         playHoldSfx(laneIndex);
                     } else {
@@ -2180,9 +2191,14 @@
                     updateHUD();
                 }
 
-                // 长按音符如果一直按住直到结束，则自动完成判定
-                if (note.hitState === 5 && currentAudioTimeMs >= note.endTimeMs) {
-                    finishHold(note);
+                // 长按音符如果一直按住直到超出GOOD窗口，则自动Miss尾判
+                if (note.hitState === 5 && currentAudioTimeMs > note.endTimeMs + JUDGE_WINDOWS.GOOD) {
+                    stopHoldSfx(note.lane);
+                    note.hitState = 3;
+                    combo = 0;
+                    triggerJudgeUI('MISS', 'judge-miss');
+                    judgments.MISS++;
+                    updateHUD();
                 }
 
                 const displayStart = note.hitState === 5 ? 0 : getDisplayRemBeats(note.beat, currentBeat);
