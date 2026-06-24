@@ -390,6 +390,12 @@
             filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
         }
 
+        .fc-ap-display.type-clear {
+            background: none;
+            -webkit-text-fill-color: white;
+            color: white;
+        }
+
         @keyframes fcApPopup {
             0% {
                 transform: translate(-50%, -20%);
@@ -415,6 +421,33 @@
             100% {
                 transform: translate(-50%, -50%);
                 /* 去掉向上的位置变化，保持原地不动 */
+                opacity: 0;
+            }
+        }
+
+        @keyframes fcApPopupGold {
+            0% {
+                transform: translate(-50%, -20%);
+                opacity: 0;
+                animation-timing-function: ease-out;
+            }
+
+            10% {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+                animation-timing-function: linear;
+            }
+
+            90% {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+                animation-timing-function: linear;
+            }
+
+            100% {
+                transform: translate(-50%, -50%);
                 opacity: 0;
             }
         }
@@ -2340,18 +2373,22 @@
                     fcApDisplay.style.display = 'block';
                     fcApDisplay.style.animation = 'none';
                     void fcApDisplay.offsetWidth; // 触发重绘重置动画
-                    fcApDisplay.style.animation = 'fcApPopup 5s ease-out forwards';
+                    fcApDisplay.classList.remove('type-clear');
 
                     if (judgments.MISS === 0) {
                         if (judgments.GREAT === 0 && judgments.GOOD === 0) {
                             fcApDisplay.textContent = 'ALL PERFECT';
+                            fcApDisplay.style.animation = 'fcApPopupGold 5s ease-out forwards';
                             playSfx(sfxBuffers.all_perfect);
                         } else {
                             fcApDisplay.textContent = 'FULL COMBO';
+                            fcApDisplay.style.animation = 'fcApPopup 5s ease-out forwards';
                             playSfx(sfxBuffers.full_combo);
                         }
                     } else {
                         fcApDisplay.textContent = 'SHOW CLEAR';
+                        fcApDisplay.classList.add('type-clear');
+                        fcApDisplay.style.animation = 'fcApPopup 5s ease-out forwards';
                         playSfx(sfxBuffers.clear);
                     }
                 }
