@@ -1005,9 +1005,8 @@
                 }
             }
 
-            if (imgLoading && !img) {
-                return; // Wait for image to load to avoid flashing slime
-            }
+            // 如果自定义图片还在加载中，我们不应该 return 导致整个进度条消失
+            // 直接继续往下执行，会以默认的史莱姆轮廓作为占位符显示进度
 
             if (img) {
                 const imgRatio = img.width / img.height;
@@ -1155,7 +1154,7 @@
                         if (e.lengthComputable) {
                             progressMap.set(url, { loaded: e.loaded, total: e.total });
                         } else {
-                            let estTotal = url.endsWith('.mp3') ? 3000000 : 100000;
+                            let estTotal = url.includes('sfx/') ? 20000 : (url.match(/\.(mp3|ogg|wav)$/i) ? 3000000 : 100000);
                             progressMap.set(url, { loaded: e.loaded, total: Math.max(e.loaded, estTotal) });
                         }
                         updateProgress();
