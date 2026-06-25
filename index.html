@@ -22,21 +22,6 @@
             --setting-bg: hsla(calc(217deg + var(--theme-hue)), 66%, 12%, 0.95);
         }
 
-        body.light-mode {
-            --bg-color: hsl(calc(212deg + var(--theme-hue)), 41%, 93%);
-            --text-main: hsl(calc(210deg + var(--theme-hue)), 39%, 17%);
-            --text-sub: hsl(calc(209deg + var(--theme-hue)), 24%, 38%);
-            --container-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.7);
-            --border-main: hsl(calc(217deg + var(--theme-hue)), 89%, 75%);
-            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.4);
-            --border-active: hsl(calc(207deg + var(--theme-hue)), 100%, 45%);
-            --card-bg: rgba(255, 255, 255, 0.6);
-            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
-            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 65%);
-            --overlay-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
-            --setting-bg: rgba(255, 255, 255, 0.8);
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -69,25 +54,34 @@
             z-index: -2;
         }
 
-        body.light-mode .bg-glow {
-            background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%);
-        }
-
         .stars {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px), radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 30px);
-            background-size: 550px 550px, 350px 350px;
-            opacity: 0.4;
+            background-image:
+                /* 大十字星 */
+                radial-gradient(ellipse 30px 1.5px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(ellipse 1.5px 30px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(circle 2.5px at 50% 50%, rgba(255, 255, 255, 1), transparent),
+                /* 中十字星 */
+                radial-gradient(ellipse 20px 1px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(ellipse 1px 20px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(circle 1.5px at 20% 80%, rgba(255, 255, 255, 0.8), transparent),
+                /* 小十字星 */
+                radial-gradient(ellipse 12px 1px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(ellipse 1px 12px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(circle 1px at 80% 30%, rgba(255, 255, 255, 0.6), transparent);
+            background-size: 550px 550px, 550px 550px, 550px 550px,
+                350px 350px, 350px 350px, 350px 350px,
+                250px 250px, 250px 250px, 250px 250px;
+            background-position: 0 0, 0 0, 0 0,
+                40px 60px, 40px 60px, 40px 60px,
+                130px 270px, 130px 270px, 130px 270px;
+            opacity: 0.5;
             z-index: -1;
-        }
-
-        body.light-mode .stars {
-            opacity: 0.9;
-            filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5));
+            transition: opacity 0.3s, filter 0.3s;
         }
 
         .menu-container {
@@ -543,10 +537,6 @@
                     <button id="btnLangToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
                 </div>
                 <div class="settings-row">
-                    <span data-i18n="lightMode">明亮模式:</span>
-                    <input type="checkbox" id="chkLightMode" style="width: 20px; height: 20px; cursor: pointer;">
-                </div>
-                <div class="settings-row">
                     <span data-i18n="hueAdjust">主色调调整:</span>
                     <input type="range" id="sliderHue" min="0" max="360" value="0">
                 </div>
@@ -718,8 +708,7 @@
                 autoOn: "自动: 开",
                 settings: "⚙️",
                 gameSettings: "游戏设置",
-                language: "语言 / Language:",
-                lightMode: "明亮模式:",
+                editorTip: "编辑器可以创作你自己的谱面",
                 hueAdjust: "主色调调整:",
                 musicVol: "音乐音量",
                 sfxVol: "音效音量",
@@ -773,8 +762,7 @@
                 autoOn: "Auto: ON",
                 settings: "⚙️",
                 gameSettings: "Game Settings",
-                language: "Language / 语言:",
-                lightMode: "Light Mode:",
+                editorTip: "Create your own beatmaps in Editor",
                 hueAdjust: "Hue Adjust:",
                 musicVol: "Music Vol",
                 sfxVol: "SFX Vol",
@@ -844,12 +832,7 @@
 
         // --- 主题应用 ---
         let themeHueOffset = 0;
-        let isLightMode = false;
         function loadLocalSettings() {
-            if (localStorage.getItem('slime_lightMode') === 'true') {
-                isLightMode = true; document.body.classList.add('light-mode');
-                document.getElementById('chkLightMode').checked = true;
-            }
             const savedHue = localStorage.getItem('slime_hue');
             if (savedHue !== null) {
                 themeHueOffset = parseInt(savedHue);
@@ -876,7 +859,6 @@
         document.getElementById('btnSettingsBack').addEventListener('click', () => document.getElementById('settingsOverlay').classList.add('hidden'));
         document.getElementById('btnAutoPlay').addEventListener('click', () => { isAutoPlay = !isAutoPlay; localStorage.setItem('slime_autoPlay', isAutoPlay); updateAutoPlayBtn(); });
         document.getElementById('btnOffsetTest').addEventListener('click', () => window.location.href = 'offset_test.html');
-        document.getElementById('chkLightMode').addEventListener('change', (e) => { isLightMode = e.target.checked; document.body.classList.toggle('light-mode', isLightMode); localStorage.setItem('slime_lightMode', isLightMode); });
         document.getElementById('sliderHue').addEventListener('input', (e) => { document.documentElement.style.setProperty('--theme-hue', e.target.value + 'deg'); localStorage.setItem('slime_hue', e.target.value); });
         ['musicVol', 'sfxVol', 'scale'].forEach(key => {
             const map = { musicVol: 'sliderMusicVol', sfxVol: 'sliderSfxVol', scale: 'sliderSlimeScale' };

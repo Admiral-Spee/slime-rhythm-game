@@ -31,31 +31,6 @@
             --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
         }
 
-        body.light-mode {
-            --bg-color: #e6edf5;
-            --bg-color: hsl(calc(212deg + var(--theme-hue)), 41%, 93%);
-            --text-main: hsl(calc(210deg + var(--theme-hue)), 39%, 17%);
-            --text-sub: hsl(calc(209deg + var(--theme-hue)), 24%, 38%);
-            --panel-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
-            --container-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.7);
-            --overlay-bg: hsla(calc(208deg + var(--theme-hue)), 100%, 97%, 0.9);
-            --border-main: hsl(calc(217deg + var(--theme-hue)), 89%, 75%);
-            --border-sub: hsla(calc(202deg + var(--theme-hue)), 100%, 60%, 0.4);
-            --border-active: hsl(calc(207deg + var(--theme-hue)), 100%, 45%);
-            --card-bg: rgba(255, 255, 255, 0.6);
-            --hud-bg: rgba(255, 255, 255, 0.7);
-            --key-bg: hsl(calc(209deg + var(--theme-hue)), 62%, 89%);
-            --setting-bg: rgba(255, 255, 255, 0.8);
-            --text-perfect: #e9af01;
-            --text-great: #0093c9;
-            --text-good: #5fbe00;
-            --text-miss: #777777;
-            --text-score: #1aa085;
-            --text-combo: #b300b3;
-            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 80%, 55%);
-            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 80%, 65%);
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -91,10 +66,6 @@
             z-index: -2;
         }
 
-        body.light-mode .bg-glow {
-            background: radial-gradient(circle at 50% 30%, hsl(calc(210deg + var(--theme-hue)), 100%, 85%) 0%, var(--bg-color) 70%);
-        }
-
         .stars {
             position: absolute;
             top: 0;
@@ -102,19 +73,27 @@
             width: 100%;
             height: 100%;
             background-image:
-                radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px),
-                radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 30px),
-                radial-gradient(white, rgba(255, 255, 255, .1) 2px, transparent 40px);
-            background-size: 550px 550px, 350px 350px, 250px 250px;
-            background-position: 0 0, 40px 60px, 130px 270px;
-            opacity: 0.4;
+                /* 大十字星 */
+                radial-gradient(ellipse 30px 1.5px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(ellipse 1.5px 30px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(circle 2.5px at 50% 50%, rgba(255, 255, 255, 1), transparent),
+                /* 中十字星 */
+                radial-gradient(ellipse 20px 1px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(ellipse 1px 20px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(circle 1.5px at 20% 80%, rgba(255, 255, 255, 0.8), transparent),
+                /* 小十字星 */
+                radial-gradient(ellipse 12px 1px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(ellipse 1px 12px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(circle 1px at 80% 30%, rgba(255, 255, 255, 0.6), transparent);
+            background-size: 550px 550px, 550px 550px, 550px 550px, 
+                             350px 350px, 350px 350px, 350px 350px, 
+                             250px 250px, 250px 250px, 250px 250px;
+            background-position: 0 0, 0 0, 0 0, 
+                                 40px 60px, 40px 60px, 40px 60px, 
+                                 130px 270px, 130px 270px, 130px 270px;
+            opacity: 0.5;
             z-index: -1;
             transition: opacity 0.3s, filter 0.3s;
-        }
-
-        body.light-mode .stars {
-            opacity: 0.9;
-            filter: drop-shadow(0 0 3px hsla(calc(210deg + var(--theme-hue)), 60%, 40%, 0.5));
         }
 
         /* 主容器 */
@@ -244,9 +223,10 @@
             flex-direction: column;
             align-items: center;
             line-height: 1;
-            position: relative;
+            position: absolute;
             top: 100px;
-            right: 10px;
+            right: 65px;
+            transform: translateX(50%);
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             visibility: hidden;
         }
@@ -268,12 +248,14 @@
             color: white !important;
             background: none !important;
             -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
         }
 
         .combo-pink .combo-val {
             color: #b6ffdf !important;
             background: none !important;
             -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
         }
 
         .combo-rainbow .combo-val {
@@ -297,32 +279,31 @@
 
         @keyframes combo-pop {
             0% {
-                transform: scale(1);
+                transform: translateX(50%) scale(1);
             }
 
             50% {
-                transform: scale(1.02);
+                transform: translateX(50%) scale(1.02);
             }
 
             100% {
-                transform: scale(1);
+                transform: translateX(50%) scale(1);
             }
         }
 
         /* 判定字样动画效果 */
         .judge-display {
             position: absolute;
-            top: 60%;
+            top: 53%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 36px;
+            font-size: 25px;
             font-weight: 900;
-            font-style: italic;
             text-align: center;
             pointer-events: none;
             opacity: 0;
             z-index: 5;
-            text-shadow: 0 0 10px currentColor, 2px 2px 0px #000;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
         }
 
         @keyframes judgePopup {
@@ -367,6 +348,32 @@
             animation: judgePopup 0.6s ease-out forwards;
         }
 
+        .fast-slow-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 6;
+            padding: 2px 5px;
+            border-radius: 8px;
+            color: #fff;
+        }
+
+        .fast-slow-fast {
+            background-color: #3498db;
+            animation: judgePopup 0.6s ease-out forwards;
+        }
+
+        .fast-slow-slow {
+            background-color: #e74c3c;
+            animation: judgePopup 0.6s ease-out forwards;
+        }
+
         /* FC/AP 动画特效 */
         .fc-ap-display {
             position: absolute;
@@ -375,7 +382,6 @@
             transform: translate(-50%, -50%) scale(0.8);
             font-size: 48px;
             font-weight: 900;
-            font-style: italic;
             text-align: center;
             pointer-events: none;
             opacity: 0;
@@ -383,7 +389,7 @@
             white-space: nowrap;
             padding: 0 20px;
             /* 增加水平内边距，防止斜体超出裁切边界被截断 */
-            background: linear-gradient(90deg, #ff5e5e, #ffb347, #ffde59, #85e085, #4ecdc4, #c9a0dc);
+            background: linear-gradient(90deg, #ff8b8b, #ffcd88, #ffe787, #85e085, #4ecdc4, #c9a0dc);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -605,6 +611,9 @@
                     <div style="color: var(--text-great);">GREAT: <span id="resGreat">0</span></div>
                     <div style="color: var(--text-good);">GOOD: <span id="resGood">0</span></div>
                     <div style="color: var(--text-miss);">MISS: <span id="resMiss">0</span></div>
+                    <hr style="border-color: var(--border-sub); margin: 10px 0;">
+                    <div style="color: #3498db; font-size: 14px;">FAST: <span id="resFast">0</span></div>
+                    <div style="color: #e74c3c; font-size: 14px;">SLOW: <span id="resSlow">0</span></div>
                 </div>
                 <button id="btnResultBack" class="btn" style="margin-top: 20px; padding: 10px 30px; font-size: 16px;"
                     data-i18n="backToMenu">返回选歌</button>
@@ -623,6 +632,7 @@
 
             <!-- 动态判定提示 -->
             <div id="judgeDisplay" class="judge-display">PERFECT</div>
+            <div id="fastSlowDisplay" class="fast-slow-display"></div>
 
             <!-- 增加全连/全P判定特效 -->
             <div id="fcApDisplay" class="fc-ap-display" style="display: none;">FULL COMBO</div>
@@ -708,7 +718,6 @@
 
         // --- 核心配置与全局状态 ---
         let themeHueOffset = 0;
-        let isLightMode = false;
         let slimeScaleFactor = 1.0;
         const PUNCH_KEYS = ['s', 'd', 'j', 'k'];
         const JUDGE_WINDOWS = {
@@ -717,21 +726,7 @@
             GOOD: 150
         };
 
-        function hslToHex(h, s, l) {
-            l /= 100;
-            const a = s * Math.min(l, 1 - l) / 100;
-            const f = n => {
-                const k = (n + h / 30) % 12;
-                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-                return Math.round(255 * color).toString(16).padStart(2, '0');
-            };
-            return `#${f(0)}${f(8)}${f(4)}`;
-        }
-
         const LANE_COLORS = ['#ff9800', '#4caf50', '#9c27b0', '#00bcd4']; // 恢复橙、绿、紫、蓝
-        function updateThemeColors() {
-            // 预留钩子：按钮和底层网格已经通过CSS变量随主题变化，如果未来有额外元素需要随主色调更新可放在这里
-        }
 
         let chartNotes = []; // 存储解析后的谱面音符数据
         let timingPoints = []; // 存储所有的BPM变速节点
@@ -751,6 +746,8 @@
         let hitEffects = []; // 存储打击特效粒子
         let laneGlows = [0, 0, 0, 0]; // 轨道发光特效透明度
         let judgments = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+        let fastCount = 0;
+        let slowCount = 0;
         let isSongEnding = false;
         let songEndingTimeout = null;
         let fcApShown = false;
@@ -786,12 +783,6 @@
 
         // --- 加载本地存储的配置 ---
         function loadLocalSettings() {
-            // 亮暗模式
-            const savedLightMode = localStorage.getItem('slime_lightMode');
-            if (savedLightMode === 'true') {
-                isLightMode = true;
-                document.body.classList.add('light-mode');
-            }
             // 主色调
             const savedHue = localStorage.getItem('slime_hue');
             if (savedHue !== null) {
@@ -821,7 +812,6 @@
                     img.src = savedImg;
                 }
             }
-            updateThemeColors();
         }
         loadLocalSettings(); // 页面加载即初始化所有设置与颜色
 
@@ -1032,6 +1022,8 @@
             laneGlows = [0, 0, 0, 0];
             activeKeys = [false, false, false, false];
             judgments = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+            fastCount = 0;
+            slowCount = 0;
 
             feverIntensity = 0;
             activeFeverIndex = -1;
@@ -1230,6 +1222,8 @@
             document.getElementById('resGreat').textContent = judgments.GREAT;
             document.getElementById('resGood').textContent = judgments.GOOD;
             document.getElementById('resMiss').textContent = judgments.MISS;
+            document.getElementById('resFast').textContent = fastCount;
+            document.getElementById('resSlow').textContent = slowCount;
 
             if (isAutoPlay) {
                 document.getElementById('resAutoPlayLabel').style.display = 'block';
@@ -1315,15 +1309,15 @@
             const targetNote = chartNotes.find(n => n.lane === laneIndex && n.hitState === 5); // 寻找正在Holding的音符
 
             if (targetNote) {
-                const diff = targetNote.endTimeMs - currentMs;
+                const diff = currentMs - targetNote.endTimeMs;
                 const absDiff = Math.abs(diff);
 
                 if (absDiff <= JUDGE_WINDOWS.PERFECT) {
-                    finishHold(targetNote, 'PERFECT');
+                    finishHold(targetNote, 'PERFECT', diff);
                 } else if (absDiff <= JUDGE_WINDOWS.GREAT) {
-                    finishHold(targetNote, 'GREAT');
+                    finishHold(targetNote, 'GREAT', diff);
                 } else if (absDiff <= JUDGE_WINDOWS.GOOD) {
-                    finishHold(targetNote, 'GOOD');
+                    finishHold(targetNote, 'GOOD', diff);
                 } else {
                     // 松开太早或太晚，判定为Miss/断连
                     stopHoldSfx(laneIndex);
@@ -1337,7 +1331,7 @@
         }
 
         // 完成长按逻辑
-        function finishHold(targetNote, tailHitType) {
+        function finishHold(targetNote, tailHitType, diff = 0) {
             stopHoldSfx(targetNote.lane);
             targetNote.hitState = tailHitType === 'PERFECT' ? 1 : (tailHitType === 'GREAT' ? 4 : 2);
             // 加上长按释放时的尾部分数
@@ -1352,7 +1346,7 @@
             }
 
             const uiClass = tailHitType === 'PERFECT' ? 'judge-perfect' : (tailHitType === 'GREAT' ? 'judge-great' : 'judge-good');
-            triggerJudgeUI(tailHitType, uiClass);
+            triggerJudgeUI(tailHitType, uiClass, diff);
             createSparks(targetNote.lane, tailHitType === 'PERFECT' ? '#ffcc00' : (tailHitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
             laneGlows[targetNote.lane] = 1.0;
             judgments[tailHitType]++;
@@ -1452,7 +1446,7 @@
 
                         // 显示头判反馈并记录
                         const uiClass = hitType === 'PERFECT' ? 'judge-perfect' : (hitType === 'GREAT' ? 'judge-great' : 'judge-good');
-                        triggerJudgeUI(hitType, uiClass);
+                        triggerJudgeUI(hitType, uiClass, diff);
                         judgments[hitType]++;
 
                         createSparks(laneIndex, hitType === 'PERFECT' ? '#ffcc00' : (hitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
@@ -1469,7 +1463,7 @@
                         } else {
                             combo = 0;
                         }
-                        triggerJudgeUI(hitType, hitType === 'PERFECT' ? 'judge-perfect' : (hitType === 'GREAT' ? 'judge-great' : 'judge-good'));
+                        triggerJudgeUI(hitType, hitType === 'PERFECT' ? 'judge-perfect' : (hitType === 'GREAT' ? 'judge-great' : 'judge-good'), diff);
                         createSparks(laneIndex, hitType === 'PERFECT' ? '#ffcc00' : (hitType === 'GREAT' ? '#00ccff' : '#a3ff66'));
                         laneGlows[laneIndex] = 1.0;
                         judgments[actualAudioHitType]++;
@@ -1499,13 +1493,33 @@
         }
 
         // 触发文字判定飘字
-        function triggerJudgeUI(txt, className) {
+        function triggerJudgeUI(txt, className, diff = 0) {
             judgeDisplay.textContent = txt;
             judgeDisplay.className = 'judge-display ' + className;
             // 强制重新渲染引发CSS动画重新执行
             judgeDisplay.style.animation = 'none';
             judgeDisplay.offsetHeight;
             judgeDisplay.style.animation = null;
+
+            const fsDisplay = document.getElementById('fastSlowDisplay');
+            if (fsDisplay) {
+                fsDisplay.style.animation = 'none';
+                if ((txt === 'GREAT' || txt === 'GOOD') && diff !== 0) {
+                    if (diff < 0) {
+                        fsDisplay.textContent = 'FAST';
+                        fsDisplay.className = 'fast-slow-display fast-slow-fast';
+                        fastCount++;
+                    } else {
+                        fsDisplay.textContent = 'SLOW';
+                        fsDisplay.className = 'fast-slow-display fast-slow-slow';
+                        slowCount++;
+                    }
+                    fsDisplay.offsetHeight;
+                    fsDisplay.style.animation = null;
+                } else {
+                    fsDisplay.className = 'fast-slow-display';
+                }
+            }
         }
 
         function updateHUD() {
@@ -1814,13 +1828,8 @@
                     ctx.shadowColor = '#333';
                 } else {
                     gradient.addColorStop(0, '#fff');
-                    if (isLightMode) {
-                        gradient.addColorStop(0.4, adjustColorBurn(color, 25));
-                        gradient.addColorStop(1, adjustColorBurn(color, -10));
-                    } else {
-                        gradient.addColorStop(0.3, color);
-                        gradient.addColorStop(1, adjustColorBurn(color, -40));
-                    }
+                    gradient.addColorStop(0.3, color);
+                    gradient.addColorStop(1, adjustColorBurn(color, -40));
                 }
 
                 ctx.fillStyle = gradient;
@@ -2004,7 +2013,7 @@
 
             const trackBaseHue = 202; // 原本青蓝色的色相值
             const currentHue = (trackBaseHue + themeHueOffset) % 360;
-            const trackL = isLightMode ? 45 : 60; // 在亮色模式下加深轨道颜色，保证清晰度
+            const trackL = 60;
 
             ctx.strokeStyle = `hsla(${currentHue}, 100%, ${trackL}%, 0.4)`;
             ctx.lineWidth = 2;
@@ -2085,7 +2094,7 @@
                     let pt = projectPerspectiveEdge(side, depth);
                     let hue = Math.random() * 360;
                     let vxBase = (side === 0 ? -1 : 1);
-                    let vx = vxBase * (Math.random() * 0.5);
+                    let vx = vxBase * (Math.random() * 0.5) * 2;
                     feverParticles.push({
                         x: pt.x,
                         y: pt.y,
