@@ -852,6 +852,13 @@
         }
         loadLocalSettings();
 
+        // --- 预载预设图案资源 ---
+        const preloadPresetSkins = ['./skin/preset1.webp', './skin/preset2.webp', './skin/preset3.webp', './skin/preset4.webp'];
+        preloadPresetSkins.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
         // --- 设置事件绑定 ---
         document.getElementById('btnEditor').addEventListener('click', () => window.location.href = 'editor.html');
         document.getElementById('btnLangToggle').addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('slime_lang', currentLang); updateUIi18n(); });

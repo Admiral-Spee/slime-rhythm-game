@@ -863,10 +863,14 @@
                 if (savedImg) {
                     const img = new Image();
                     customSlimeImages[i] = img;
+                    img.onload = () => {
+                        if (typeof updateProgress === 'function') updateProgress();
+                    };
                     img.onerror = () => {
                         console.warn("无法加载保存的皮肤图片，可能已被移除或路径错误:", savedImg);
                         localStorage.removeItem('slime_customImg' + i);
                         customSlimeImages[i] = null;
+                        if (typeof updateProgress === 'function') updateProgress();
                     };
                     img.src = savedImg;
                 }
@@ -1150,11 +1154,14 @@
                     xhr.onprogress = (e) => {
                         if (e.lengthComputable) {
                             progressMap.set(url, { loaded: e.loaded, total: e.total });
-                            updateProgress();
+                        } else {
+                            let estTotal = url.endsWith('.mp3') ? 3000000 : 100000;
+                            progressMap.set(url, { loaded: e.loaded, total: Math.max(e.loaded, estTotal) });
                         }
+                        updateProgress();
                     };
                     xhr.onload = () => {
-                        if (xhr.status >= 200 && xhr.status < 300) {
+                        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304 || xhr.status === 0) {
                             progressMap.set(url, { loaded: xhr.response.byteLength, total: xhr.response.byteLength });
                             updateProgress();
                             resolve(xhr.response);
@@ -1209,11 +1216,14 @@
                         xhr.onprogress = (e) => {
                             if (e.lengthComputable) {
                                 progressMap.set(chartFile, { loaded: e.loaded, total: e.total });
-                                updateProgress();
+                            } else {
+                                let estTotal = 50000;
+                                progressMap.set(chartFile, { loaded: e.loaded, total: Math.max(e.loaded, estTotal) });
                             }
+                            updateProgress();
                         };
                         xhr.onload = () => {
-                            if (xhr.status >= 200 && xhr.status < 300) {
+                            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304 || xhr.status === 0) {
                                 progressMap.set(chartFile, { loaded: xhr.response.length, total: xhr.response.length });
                                 updateProgress();
                                 resolve(JSON.parse(xhr.response));
@@ -1305,12 +1315,17 @@
                             const overlay = document.getElementById('startOverlay');
                             overlay.style.transition = 'opacity 0.15s ease-out';
                             overlay.classList.add('hidden');
+                        }).catch(err => {
+                            console.error(err);
+                            const overlay = document.getElementById('startOverlay');
+                            overlay.style.transition = 'opacity 0.15s ease-out';
+                            overlay.classList.add('hidden');
                         });
                         document.removeEventListener('click', resumeAndStart);
-                        document.removeEventListener('touchstart', resumeAndStart);
+                        document.removeEventListener('touchend', resumeAndStart);
                     };
                     document.addEventListener('click', resumeAndStart);
-                    document.addEventListener('touchstart', resumeAndStart);
+                    document.addEventListener('touchend', resumeAndStart);
                 } else {
                     const overlay = document.getElementById('startOverlay');
                     overlay.style.transition = 'opacity 0.15s ease-out';
