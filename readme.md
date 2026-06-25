@@ -13,7 +13,7 @@
   - PC端使用键盘输入（S, D, J, K）。
   - 移动端直接点击屏幕，支持多点触控。
 - **个性化设置**：
-  - 支持亮色 / 暗色模式一键切换。
+  - ~~支持亮色 / 暗色模式一键切换。~~ （因为大部分特效无法适配亮色模式，暂时移除了该功能）
   - 游戏 UI 主题色调全色相自定义。
   - 内置 3 种预设的音符图案，分别为：初音未来、晓山瑞希和镜音连。
   - 支持为 4 个轨道分别上传自定义音符图案。
@@ -46,8 +46,9 @@
 
 ### 编辑器操作指南
 
-- **添加音符**：鼠标左键点击网格。
-- **添加长按音符**：在左侧面板将输入模式切换为“长按 (Drag)”，然后在网格上按住左键向上拖动。
+- **添加音符**：
+  - 鼠标左键点击网格。
+  - 在左侧面板将输入模式切换为“长按 (Drag)”，然后在网格上按住左键向上拖动。
 - **删除音符**：鼠标右键点击已有音符。
 - **移动时间轴**：鼠标滚轮向上或向下。
 - **缩放轨道**：按住 `Ctrl` 键 + 鼠标滚轮。
@@ -153,7 +154,7 @@ The game mainly references the beat-based falling mechanics of *Rift of the Necr
   - PC: Keyboard input (`S`, `D`, `J`, `K`).
   - Mobile: Direct screen taps with multi-touch support.
 - **Personalization**:
-  - One-click toggle between Light / Dark mode.
+  - ~~One-click toggle between Light / Dark mode.~~ (Because most special effects cannot be adapted to light mode, this feature has been temporarily removed)
   - Fully customizable UI theme color hue.
   - Built-in 3 preset note patterns: Hatsune Miku, Akiyama Mizuki, and Kagamine Len.
   - Supports uploading custom note patterns for each of the 4 lanes.
@@ -186,8 +187,9 @@ For external songs you want to upload:
 
 ### Editor Guide
 
-- **Add Note**: Left-click on the grid.
-- **Add Hold Note**: Switch the input mode to "Drag (Hold)" in the left panel, then hold the left mouse button and drag upwards on the grid.
+- **Add Note**:
+  - Left-click on the grid.
+  - Switch the input mode to "Drag (Hold)" in the left panel, then hold the left mouse button and drag upwards on the grid.
 - **Delete Note**: Right-click on an existing note.
 - **Move Timeline**: Mouse wheel up or down.
 - **Zoom Lanes**: Hold `Ctrl` + Mouse wheel.
