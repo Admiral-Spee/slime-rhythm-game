@@ -85,12 +85,12 @@
                 radial-gradient(ellipse 12px 1px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
                 radial-gradient(ellipse 1px 12px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
                 radial-gradient(circle 1px at 80% 30%, rgba(255, 255, 255, 0.6), transparent);
-            background-size: 550px 550px, 550px 550px, 550px 550px, 
-                             350px 350px, 350px 350px, 350px 350px, 
-                             250px 250px, 250px 250px, 250px 250px;
-            background-position: 0 0, 0 0, 0 0, 
-                                 40px 60px, 40px 60px, 40px 60px, 
-                                 130px 270px, 130px 270px, 130px 270px;
+            background-size: 550px 550px, 550px 550px, 550px 550px,
+                350px 350px, 350px 350px, 350px 350px,
+                250px 250px, 250px 250px, 250px 250px;
+            background-position: 0 0, 0 0, 0 0,
+                40px 60px, 40px 60px, 40px 60px,
+                130px 270px, 130px 270px, 130px 270px;
             opacity: 0.5;
             z-index: -1;
             transition: opacity 0.3s, filter 0.3s;
@@ -350,28 +350,30 @@
 
         .fast-slow-display {
             position: absolute;
-            top: 50%;
+            bottom: 80%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 12px;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+            font-size: 15px;
             font-weight: bold;
             text-align: center;
             pointer-events: none;
-            opacity: 0;
-            z-index: 6;
-            padding: 2px 5px;
+            padding: 2px 8px;
             border-radius: 8px;
             color: #fff;
+            opacity: 0;
+            white-space: nowrap;
+            text-shadow: none;
         }
 
         .fast-slow-fast {
             background-color: #3498db;
-            animation: judgePopup 0.6s ease-out forwards;
+            opacity: 1;
         }
 
         .fast-slow-slow {
             background-color: #e74c3c;
-            animation: judgePopup 0.6s ease-out forwards;
+            opacity: 1;
         }
 
         /* FC/AP 动画特效 */
@@ -410,6 +412,13 @@
                 /* 先快后慢平滑缓出曲线 */
             }
 
+            9% {
+                transform: translate(-50%, -50%);
+                opacity: 0.8;
+                filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+                animation-timing-function: linear;
+            }
+
             10% {
                 transform: translate(-50%, -50%);
                 opacity: 1;
@@ -436,6 +445,13 @@
                 transform: translate(-50%, -20%);
                 opacity: 0;
                 animation-timing-function: ease-out;
+            }
+
+            9% {
+                transform: translate(-50%, -50%);
+                opacity: 0.8;
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+                animation-timing-function: linear;
             }
 
             10% {
@@ -581,6 +597,42 @@
                 display: none;
             }
         }
+
+        @keyframes slimeJump {
+            0% {
+                transform: translateY(0) scale(1, 1);
+                animation-timing-function: ease-out;
+            }
+
+            10% {
+                transform: translateY(0) scale(1.1, 0.9);
+                animation-timing-function: ease-out;
+            }
+
+            30% {
+                transform: translateY(-25px) scale(0.85, 1.15);
+                animation-timing-function: ease-in;
+            }
+
+            50% {
+                transform: translateY(0) scale(1.15, 0.85);
+                animation-timing-function: ease-out;
+            }
+
+            70% {
+                transform: translateY(-15px) scale(0.9, 1.1);
+                animation-timing-function: ease-in;
+            }
+
+            90% {
+                transform: translateY(0) scale(1.1, 0.9);
+                animation-timing-function: ease-out;
+            }
+
+            100% {
+                transform: translateY(0) scale(1, 1);
+            }
+        }
     </style>
 </head>
 
@@ -631,8 +683,10 @@
             </div>
 
             <!-- 动态判定提示 -->
-            <div id="judgeDisplay" class="judge-display">PERFECT</div>
-            <div id="fastSlowDisplay" class="fast-slow-display"></div>
+            <div id="judgeDisplay" class="judge-display">
+                <div id="fastSlowDisplay" class="fast-slow-display"></div>
+                <span id="judgeText">PERFECT</span>
+            </div>
 
             <!-- 增加全连/全P判定特效 -->
             <div id="fcApDisplay" class="fc-ap-display" style="display: none;">FULL COMBO</div>
@@ -641,7 +695,11 @@
 
             <!-- 开始/就绪遮罩层 -->
             <div id="startOverlay" class="overlay" style="padding: 20px;">
-                <h2 id="readyTitle" data-i18n="waiting">等待加载...</h2>
+                <h2 id="readyTitle" data-i18n="waiting" style="margin-bottom: 20px;">等待加载...</h2>
+                <canvas id="loadingCanvas"
+                    style="display: block; margin: 0 auto; transform-origin: bottom center;"></canvas>
+                <div id="loadingText" style="margin-top: 20px; font-size: 18px; font-weight: bold; color: #fff;">0%
+                </div>
             </div>
         </div>
 
@@ -804,10 +862,11 @@
                 const savedImg = localStorage.getItem('slime_customImg' + i);
                 if (savedImg) {
                     const img = new Image();
-                    img.onload = () => { customSlimeImages[i] = img; };
+                    customSlimeImages[i] = img;
                     img.onerror = () => {
                         console.warn("无法加载保存的皮肤图片，可能已被移除或路径错误:", savedImg);
                         localStorage.removeItem('slime_customImg' + i);
+                        customSlimeImages[i] = null;
                     };
                     img.src = savedImg;
                 }
@@ -919,11 +978,193 @@
             return chartData;
         }
 
+        const DEBUG_FIXED_LOADING_TIME = false; // [测试开关] 固定加载5秒以测试加载页面
+
+        const progressMap = new Map();
+
+        function drawLoadingCanvas(percent) {
+            const canvas = document.getElementById('loadingCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let drawWidth = 150, drawHeight = 100;
+            let img = null;
+            let imgLoading = false;
+            for (let i = 0; i < 4; i++) {
+                if (customSlimeImages[i]) {
+                    if (customSlimeImages[i].complete && customSlimeImages[i].naturalWidth > 0) {
+                        img = customSlimeImages[i];
+                    } else {
+                        imgLoading = true;
+                    }
+                    break;
+                }
+            }
+
+            if (imgLoading && !img) {
+                return; // Wait for image to load to avoid flashing slime
+            }
+
+            if (img) {
+                const imgRatio = img.width / img.height;
+                if (imgRatio > 150 / 100) {
+                    drawWidth = 150;
+                    drawHeight = 150 / imgRatio;
+                } else {
+                    drawHeight = 100;
+                    drawWidth = 100 * imgRatio;
+                }
+            } else {
+                const ratio = 2 / 2.2;
+                if (ratio > 120 / 80) {
+                    drawWidth = 120;
+                    drawHeight = 120 / ratio;
+                } else {
+                    drawHeight = 80;
+                    drawWidth = 80 * ratio;
+                }
+            }
+
+            canvas.width = drawWidth;
+            canvas.height = drawHeight;
+            canvas.style.width = drawWidth + 'px';
+            canvas.style.height = drawHeight + 'px';
+
+            ctx.clearRect(0, 0, drawWidth, drawHeight);
+
+            // Draw silhouette
+            ctx.save();
+            if (img) {
+                ctx.globalAlpha = 0.3;
+                ctx.filter = 'brightness(0)';
+                ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+                ctx.filter = 'none';
+                ctx.globalAlpha = 1.0;
+            } else {
+                ctx.globalAlpha = 0.3;
+                drawLoadingSlime(ctx, drawWidth, drawHeight, true);
+                ctx.globalAlpha = 1.0;
+            }
+            ctx.restore();
+
+            // Draw filled part with clipping
+            ctx.save();
+            ctx.beginPath();
+            const clipHeight = drawHeight * (percent / 100);
+            ctx.rect(0, drawHeight - clipHeight, drawWidth, clipHeight);
+            ctx.clip();
+
+            if (img) {
+                ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+            } else {
+                drawLoadingSlime(ctx, drawWidth, drawHeight, false);
+            }
+            ctx.restore();
+        }
+
+        function drawLoadingSlime(ctx, width, height, isSilhouette) {
+            const radius = width / 2;
+            const x = radius;
+            const y = radius * 1.3;
+
+            ctx.save();
+            ctx.translate(x, y);
+
+            const gradient = ctx.createRadialGradient(0, -radius * 0.2, radius * 0.2, 0, 0, radius);
+            if (isSilhouette) {
+                gradient.addColorStop(0, '#888888');
+                gradient.addColorStop(1, '#555555');
+            } else {
+                const hue = (202 + themeHueOffset) % 360;
+                gradient.addColorStop(0, '#fff');
+                gradient.addColorStop(0.3, `hsl(${hue}, 100%, 60%)`);
+                gradient.addColorStop(1, `hsl(${hue}, 100%, 36%)`);
+            }
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(-radius, 0);
+            ctx.bezierCurveTo(-radius, -radius * 1.1, -radius * 0.6, -radius * 1.3, 0, -radius * 1.3);
+            ctx.bezierCurveTo(radius * 0.6, -radius * 1.3, radius, -radius * 1.1, radius, 0);
+            ctx.bezierCurveTo(radius, radius * 0.6, radius * 0.7, radius * 0.9, 0, radius * 0.9);
+            ctx.bezierCurveTo(-radius * 0.7, radius * 0.9, -radius, radius * 0.6, -radius, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#110224';
+            ctx.beginPath();
+            ctx.arc(-radius * 0.35, -radius * 0.35, radius * 0.12, 0, Math.PI * 2);
+            ctx.arc(radius * 0.35, -radius * 0.35, radius * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-radius * 0.32, -radius * 0.38, radius * 0.04, 0, Math.PI * 2);
+            ctx.arc(radius * 0.38, -radius * 0.38, radius * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#110224';
+            ctx.lineWidth = Math.max(1, radius * 0.05);
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(-radius * 0.08, -radius * 0.15, radius * 0.08, 0, Math.PI);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(radius * 0.08, -radius * 0.15, radius * 0.08, 0, Math.PI);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function updateProgress() {
+            if (DEBUG_FIXED_LOADING_TIME) return; // 测试模式下由假进度条接管
+
+            let sumLoaded = 0;
+            let sumTotal = 0;
+            for (let prog of progressMap.values()) {
+                if (prog.total > 0) {
+                    sumLoaded += prog.loaded;
+                    sumTotal += prog.total;
+                }
+            }
+            if (sumTotal > 0) {
+                const percent = Math.min(100, Math.round((sumLoaded / sumTotal) * 100));
+                const progressText = document.getElementById('loadingText');
+                if (progressText) progressText.textContent = percent + '%';
+                drawLoadingCanvas(percent);
+            }
+        }
+
         async function fetchAudioAsArrayBuffer(url) {
             try {
-                const res = await fetch(url);
-                if (!res.ok) return null;
-                return await res.arrayBuffer();
+                if (url.startsWith('data:') || url.startsWith('blob:')) {
+                    const res = await fetch(url);
+                    return await res.arrayBuffer();
+                }
+
+                return await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', url);
+                    xhr.responseType = 'arraybuffer';
+                    progressMap.set(url, { loaded: 0, total: 0 });
+                    xhr.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            progressMap.set(url, { loaded: e.loaded, total: e.total });
+                            updateProgress();
+                        }
+                    };
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            progressMap.set(url, { loaded: xhr.response.byteLength, total: xhr.response.byteLength });
+                            updateProgress();
+                            resolve(xhr.response);
+                        } else {
+                            reject(new Error(xhr.statusText));
+                        }
+                    };
+                    xhr.onerror = () => reject(new Error("Network Error"));
+                    xhr.send();
+                });
             } catch (e) {
                 console.warn('音效加载失败:', url);
                 return null;
@@ -960,7 +1201,29 @@
                 } else if (chartFile.startsWith('local:')) {
                     chartPromise = Promise.resolve(JSON.parse(localStorage.getItem(chartFile.substring(6))));
                 } else {
-                    chartPromise = fetch(chartFile).then(res => res.json());
+                    chartPromise = new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', chartFile);
+                        xhr.responseType = 'text';
+                        progressMap.set(chartFile, { loaded: 0, total: 0 });
+                        xhr.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                progressMap.set(chartFile, { loaded: e.loaded, total: e.total });
+                                updateProgress();
+                            }
+                        };
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                progressMap.set(chartFile, { loaded: xhr.response.length, total: xhr.response.length });
+                                updateProgress();
+                                resolve(JSON.parse(xhr.response));
+                            } else {
+                                reject(new Error(xhr.statusText));
+                            }
+                        };
+                        xhr.onerror = () => reject(new Error("Network Error"));
+                        xhr.send();
+                    });
                 }
 
                 let audioPromise;
@@ -970,41 +1233,88 @@
                     audioPromise = fetchAudioAsArrayBuffer(audioFile);
                 }
 
-                await Promise.all([
+                const loadPromises = Promise.all([
                     ...sfxPromises,
                     chartPromise.then(data => loadChartData(data)),
                     audioPromise.then(b => audioArrayBuffers.music = b)
                 ]);
 
-                document.getElementById('readyTitle').textContent = t('decoding') || "解码中...";
+                if (DEBUG_FIXED_LOADING_TIME) {
+                    const debugPromise = new Promise(resolve => {
+                        let elapsed = 0;
+                        const interval = setInterval(() => {
+                            elapsed += 50;
+                            const percent = Math.min(100, Math.round((elapsed / 5000) * 100));
+                            const progressText = document.getElementById('loadingText');
+                            if (progressText) progressText.textContent = percent + '%';
+                            drawLoadingCanvas(percent);
+                            if (elapsed >= 5000) {
+                                clearInterval(interval);
+                                resolve();
+                            }
+                        }, 50);
+                    });
+                    await Promise.all([loadPromises, debugPromise]);
+                } else {
+                    await loadPromises;
+                }
+
+                document.getElementById('readyTitle').style.display = 'none';
+                document.getElementById('loadingText').style.display = 'none';
 
                 initAudio(); // 初始化 Web Audio API 上下文
 
-                sfxBuffers.perfect = await decodeAudioSafe(audioArrayBuffers.perfect);
-                sfxBuffers.great = await decodeAudioSafe(audioArrayBuffers.great);
-                sfxBuffers.good = await decodeAudioSafe(audioArrayBuffers.good);
-                sfxBuffers.empty = await decodeAudioSafe(audioArrayBuffers.empty);
-                sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
-                sfxBuffers.all_perfect = await decodeAudioSafe(audioArrayBuffers.all_perfect);
-                sfxBuffers.full_combo = await decodeAudioSafe(audioArrayBuffers.full_combo);
-                sfxBuffers.clear = await decodeAudioSafe(audioArrayBuffers.clear);
+                const decodingPromise = (async () => {
+                    sfxBuffers.perfect = await decodeAudioSafe(audioArrayBuffers.perfect);
+                    sfxBuffers.great = await decodeAudioSafe(audioArrayBuffers.great);
+                    sfxBuffers.good = await decodeAudioSafe(audioArrayBuffers.good);
+                    sfxBuffers.empty = await decodeAudioSafe(audioArrayBuffers.empty);
+                    sfxBuffers.long = await decodeAudioSafe(audioArrayBuffers.long);
+                    sfxBuffers.all_perfect = await decodeAudioSafe(audioArrayBuffers.all_perfect);
+                    sfxBuffers.full_combo = await decodeAudioSafe(audioArrayBuffers.full_combo);
+                    sfxBuffers.clear = await decodeAudioSafe(audioArrayBuffers.clear);
+                    loadedAudioBuffer = await decodeAudioSafe(audioArrayBuffers.music);
+                })();
 
-                loadedAudioBuffer = await decodeAudioSafe(audioArrayBuffers.music);
+                const animationPromise = new Promise(resolve => {
+                    const canvas = document.getElementById('loadingCanvas');
+                    if (canvas) {
+                        drawLoadingCanvas(100);
+                        canvas.style.animation = 'slimeJump 0.8s linear forwards';
+                        canvas.addEventListener('animationend', () => resolve(), { once: true });
+                        setTimeout(resolve, 1000); // fallback
+                    } else {
+                        resolve();
+                    }
+                });
+
+                await Promise.all([decodingPromise, animationPromise]);
 
                 startGameDirectly();
 
                 // 检查 AudioContext 是否因为浏览器的自动播放策略而被暂停
                 if (audioContext.state === 'suspended') {
-                    document.getElementById('readyTitle').innerHTML = '<span style="font-size:24px; cursor:pointer;">' + (currentLang === 'zh' ? '点击屏幕任意位置开始' : 'Tap anywhere to start') + '</span>';
+                    const readyTitle = document.getElementById('readyTitle');
+                    readyTitle.style.display = 'block';
+                    readyTitle.innerHTML = '<span style="font-size:24px; cursor:pointer;">' + (currentLang === 'zh' ? '点击屏幕任意位置开始' : 'Tap anywhere to start') + '</span>';
+                    const loadingCanvas = document.getElementById('loadingCanvas');
+                    if (loadingCanvas) loadingCanvas.style.display = 'none';
+
                     const resumeAndStart = () => {
-                        audioContext.resume().then(() => document.getElementById('startOverlay').classList.add('hidden'));
+                        audioContext.resume().then(() => {
+                            const overlay = document.getElementById('startOverlay');
+                            overlay.style.transition = 'opacity 0.15s ease-out';
+                            overlay.classList.add('hidden');
+                        });
                         document.removeEventListener('click', resumeAndStart);
                         document.removeEventListener('touchstart', resumeAndStart);
                     };
                     document.addEventListener('click', resumeAndStart);
                     document.addEventListener('touchstart', resumeAndStart);
                 } else {
-                    document.getElementById('startOverlay').classList.add('hidden');
+                    const overlay = document.getElementById('startOverlay');
+                    overlay.style.transition = 'opacity 0.15s ease-out';
+                    overlay.classList.add('hidden');
                 }
             } catch (err) {
                 console.error("加载资源失败:", err);
@@ -1492,9 +1802,8 @@
             }
         }
 
-        // 触发文字判定飘字
         function triggerJudgeUI(txt, className, diff = 0) {
-            judgeDisplay.textContent = txt;
+            document.getElementById('judgeText').textContent = txt;
             judgeDisplay.className = 'judge-display ' + className;
             // 强制重新渲染引发CSS动画重新执行
             judgeDisplay.style.animation = 'none';
@@ -1503,7 +1812,6 @@
 
             const fsDisplay = document.getElementById('fastSlowDisplay');
             if (fsDisplay) {
-                fsDisplay.style.animation = 'none';
                 if ((txt === 'GREAT' || txt === 'GOOD') && diff !== 0) {
                     if (diff < 0) {
                         fsDisplay.textContent = 'FAST';
@@ -1514,8 +1822,6 @@
                         fsDisplay.className = 'fast-slow-display fast-slow-slow';
                         slowCount++;
                     }
-                    fsDisplay.offsetHeight;
-                    fsDisplay.style.animation = null;
                 } else {
                     fsDisplay.className = 'fast-slow-display';
                 }
