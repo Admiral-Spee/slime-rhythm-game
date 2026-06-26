@@ -651,30 +651,32 @@
 
             <!-- 结算界面遮罩层 -->
             <div id="resultOverlay" class="overlay hidden">
-                <h2 data-i18n="gameOver" style="margin-bottom: 5px;">游戏结束</h2>
-                <div id="resAutoPlayLabel"
-                    style="display: none; color: var(--text-perfect); margin-bottom: 15px; font-weight: bold; font-size: 14px;"
-                    data-i18n="autoPlayMode">自动演奏模式</div>
-                <div class="result-stats">
-                    <div><span data-i18n="score">得分: </span><span id="resScore">0</span></div>
-                    <div><span data-i18n="maxCombo">最大连击: </span><span id="resCombo">0</span></div>
-                    <hr style="border-color: var(--border-sub); margin: 10px 0;">
-                    <div style="color: var(--text-perfect);">PERFECT: <span id="resPerfect">0</span></div>
-                    <div style="color: var(--text-great);">GREAT: <span id="resGreat">0</span></div>
-                    <div style="color: var(--text-good);">GOOD: <span id="resGood">0</span></div>
-                    <div style="color: var(--text-miss);">MISS: <span id="resMiss">0</span></div>
-                    <hr style="border-color: var(--border-sub); margin: 10px 0;">
-                    <div style="color: #3498db; font-size: 14px;">FAST: <span id="resFast">0</span></div>
-                    <div style="color: #e74c3c; font-size: 14px;">SLOW: <span id="resSlow">0</span></div>
+                <div id="resultContent" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+                    <h2 data-i18n="gameOver" style="margin-bottom: 5px;">游戏结束</h2>
+                    <div id="resAutoPlayLabel"
+                        style="display: none; color: var(--text-perfect); margin-bottom: 15px; font-weight: bold; font-size: 14px;"
+                        data-i18n="autoPlayMode">自动演奏模式</div>
+                    <div class="result-stats">
+                        <div><span data-i18n="score">得分: </span><span id="resScore">0</span></div>
+                        <div><span data-i18n="maxCombo">最大连击: </span><span id="resCombo">0</span></div>
+                        <hr style="border-color: var(--border-sub); margin: 10px 0;">
+                        <div style="color: var(--text-perfect);">PERFECT: <span id="resPerfect">0</span></div>
+                        <div style="color: var(--text-great);">GREAT: <span id="resGreat">0</span></div>
+                        <div style="color: var(--text-good);">GOOD: <span id="resGood">0</span></div>
+                        <div style="color: var(--text-miss);">MISS: <span id="resMiss">0</span></div>
+                        <hr style="border-color: var(--border-sub); margin: 10px 0;">
+                        <div style="color: #3498db; font-size: 14px;">FAST: <span id="resFast">0</span></div>
+                        <div style="color: #e74c3c; font-size: 14px;">SLOW: <span id="resSlow">0</span></div>
+                    </div>
+                    <button id="btnResultBack" class="btn" style="margin-top: 20px; padding: 10px 30px; font-size: 16px;"
+                        data-i18n="backToMenu">返回选歌</button>
                 </div>
-                <button id="btnResultBack" class="btn" style="margin-top: 20px; padding: 10px 30px; font-size: 16px;"
-                    data-i18n="backToMenu">返回选歌</button>
             </div>
         </div>
 
         <!-- 游戏舞台 -->
         <div class="stage" id="stageContainer">
-            <div class="hud">
+            <div class="hud" id="gameHud" style="display: none;">
                 <div class="hud-item">SCORE <span id="scoreText" class="score-val">000000</span></div>
                 <div class="hud-item combo-item">
                     <div id="comboText" class="combo-val">0</div>
@@ -1314,11 +1316,13 @@
                             const overlay = document.getElementById('startOverlay');
                             overlay.style.transition = 'opacity 0.15s ease-out';
                             overlay.classList.add('hidden');
+                            document.getElementById('gameHud').style.display = 'flex';
                         }).catch(err => {
                             console.error(err);
                             const overlay = document.getElementById('startOverlay');
                             overlay.style.transition = 'opacity 0.15s ease-out';
                             overlay.classList.add('hidden');
+                            document.getElementById('gameHud').style.display = 'flex';
                         });
                         document.removeEventListener('click', resumeAndStart);
                         document.removeEventListener('touchend', resumeAndStart);
@@ -1329,6 +1333,7 @@
                     const overlay = document.getElementById('startOverlay');
                     overlay.style.transition = 'opacity 0.15s ease-out';
                     overlay.classList.add('hidden');
+                    document.getElementById('gameHud').style.display = 'flex';
                 }
             } catch (err) {
                 console.error("加载资源失败:", err);
@@ -1371,14 +1376,17 @@
             judgeDisplay.className = 'judge-display'; // 重置判定UI
         }
 
+        let currentChartOffset = 0; // 记录当前谱面的 offset
+
         // --- 变速谱面：时间与节拍映射核心 ---
         function processTimingPoints(chartObj) {
             let baseBpm = chartObj.bpm || 120;
             let list = chartObj.bpmList || [{ beat: 0, bpm: baseBpm }];
             list.sort((a, b) => a.beat - b.beat);
 
+            currentChartOffset = chartObj.offset || 0;
             timingPoints = [];
-            let currentTime = 0;
+            let currentTime = currentChartOffset;
 
             for (let i = 0; i < list.length; i++) {
                 let tp = list[i];
@@ -1393,7 +1401,7 @@
         }
 
         function beatToTime(beat) {
-            if (timingPoints.length === 0) return beat * (60000 / 120);
+            if (timingPoints.length === 0) return beat * (60000 / 120) + currentChartOffset;
             let tp = timingPoints[0];
             for (let i = timingPoints.length - 1; i >= 0; i--) {
                 if (beat >= timingPoints[i].beat) {
@@ -1407,7 +1415,7 @@
         }
 
         function timeToBeat(timeMs) {
-            if (timingPoints.length === 0) return timeMs / (60000 / 120);
+            if (timingPoints.length === 0) return (timeMs - currentChartOffset) / (60000 / 120);
             let tp = timingPoints[0];
             // 时间在第一个节点之前（比如开局等待时间）
             if (timeMs < tp.timeMs) {
@@ -1556,6 +1564,8 @@
             }
 
             document.getElementById('resultOverlay').classList.remove('hidden');
+            document.getElementById('resultContent').style.display = 'flex';
+            document.getElementById('gameHud').style.display = 'none';
             btnBackToMenu.style.display = 'none';
             document.getElementById('fcApDisplay').style.display = 'none';
         }
@@ -1676,9 +1686,9 @@
             judgments[tailHitType]++;
             updateHUD();
 
-            if (tailHitType === 'PERFECT') { triggerVibrate(); }
-            else if (tailHitType === 'GREAT') { triggerVibrate(); }
-            else if (tailHitType === 'GOOD') { triggerVibrate(); }
+            if (tailHitType === 'PERFECT') { playSfx(sfxBuffers.perfect); triggerVibrate(); }
+            else if (tailHitType === 'GREAT') { playSfx(sfxBuffers.great); triggerVibrate(); }
+            else if (tailHitType === 'GOOD') { playSfx(sfxBuffers.good); triggerVibrate(); }
         }
 
         // --- 音效与震动辅助函数 ---
@@ -1798,21 +1808,17 @@
                 }
             }
 
-            if (actualAudioHitType !== 'EMPTY' && targetNote && targetNote.endTimeMs) {
+            if (actualAudioHitType === 'PERFECT') {
+                playSfx(sfxBuffers.perfect);
+                triggerVibrate();
+            } else if (actualAudioHitType === 'GREAT') {
+                playSfx(sfxBuffers.great);
+                triggerVibrate();
+            } else if (actualAudioHitType === 'GOOD') {
+                playSfx(sfxBuffers.good);
                 triggerVibrate();
             } else {
-                if (actualAudioHitType === 'PERFECT') {
-                    playSfx(sfxBuffers.perfect);
-                    triggerVibrate();
-                } else if (actualAudioHitType === 'GREAT') {
-                    playSfx(sfxBuffers.great);
-                    triggerVibrate();
-                } else if (actualAudioHitType === 'GOOD') {
-                    playSfx(sfxBuffers.good);
-                    triggerVibrate();
-                } else {
-                    playSfx(sfxBuffers.empty);
-                }
+                playSfx(sfxBuffers.empty);
             }
         }
 
@@ -2703,6 +2709,10 @@
                     fcApDisplay.style.animation = 'none';
                     void fcApDisplay.offsetWidth; // 触发重绘重置动画
                     fcApDisplay.classList.remove('type-clear');
+
+                    // 提前显示暗色背景, 并且隐藏 HUD
+                    document.getElementById('resultOverlay').classList.remove('hidden');
+                    document.getElementById('gameHud').style.display = 'none';
 
                     if (judgments.MISS === 0) {
                         if (judgments.GREAT === 0 && judgments.GOOD === 0) {

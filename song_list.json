@@ -5,19 +5,31 @@
     "artist": "AIGC",
     "audio": "music/music2/music2.mp3",
     "levels": [
-      { "level": 2, "chart": "music/music2/chart2.json" },
-      { "level": 2, "chart": "music/music2/chart2.json" },
-      { "level": 2, "chart": "music/music2/chart2.json" }
+      {
+        "level": 2,
+        "chart": "music/music2/chart2.json"
+      },
+      {
+        "level": 2,
+        "chart": "music/music2/chart2.json"
+      },
+      {
+        "level": 2,
+        "chart": "music/music2/chart2.json"
+      }
     ]
   },
   {
     "id": "3",
-    "title": "Hello, Sekai",
+    "title": "ハローセカイ (Hello, SEKAI)",
     "artist": "DECO*27",
     "audio": "music/music3/music3.mp3",
     "cover": "music/music3/cover.jpg",
     "levels": [
-      { "level": 8, "chart": "music/music3/chart3.json" }
+      {
+        "level": 8,
+        "chart": "music/music3/chart3.json"
+      }
     ]
   },
   {
@@ -27,7 +39,10 @@
     "audio": "music/music4/music.mp3",
     "cover": "music/music4/cover.webp",
     "levels": [
-      { "level": 8, "chart": "music/music4/chart.json" }
+      {
+        "level": 8,
+        "chart": "music/music4/chart.json"
+      }
     ]
   },
   {
@@ -37,17 +52,23 @@
     "audio": "music/music5/music.mp3",
     "cover": "music/music5/cover.webp",
     "levels": [
-      { "level": 10, "chart": "music/music5/chart.json" }
+      {
+        "level": 10,
+        "chart": "music/music5/chart.json"
+      }
     ]
   },
   {
     "id": "6",
-    "title": "劣等上等",
+    "title": "劣等上等 (Bring it On!)",
     "artist": "Giga",
     "audio": "music/music6/music.mp3",
     "cover": "music/music6/cover.webp",
     "levels": [
-      { "level": 10, "chart": "music/music6/chart.json" }
+      {
+        "level": 10,
+        "chart": "music/music6/chart.json"
+      }
     ]
   }
 ]
