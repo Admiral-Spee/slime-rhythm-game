@@ -264,10 +264,12 @@
     <div class="stars"></div>
     <div class="game-container">
         <div class="config-panel">
-            <div class="config-row">
+            <div class="config-row" style="justify-content: center; gap: 15px;">
                 <button id="btnBack" class="btn" data-i18n="backToMenu">返回选歌</button>
                 <button id="btnPlayPause" class="btn" disabled data-i18n="waiting">等待加载...</button>
             </div>
+        </div>
+        <div class="config-panel">
             <div class="config-row" style="color:#ffcc00; font-weight: bold;">
                 <span><span data-i18n="audioOffset">音频偏移:</span> <span id="valOffset">0</span> ms</span>
                 <input type="range" id="sliderOffset" min="-300" max="300" value="0" step="5">
@@ -388,7 +390,7 @@
 
         document.getElementById('btnBack').addEventListener('click', () => {
             localStorage.setItem('slime_audioOffset', audioOffsetMs); // 保险起见返回时再存一次
-            window.location.href = 'index.html';
+            setTimeout(() => window.location.href = 'index.html', 300);
         });
 
         function resizeCanvas() {
@@ -423,19 +425,21 @@
                 initAudio();
                 emptyBuffer = await new Promise(resolve => audioContext.decodeAudioData(arrayBuffer, resolve));
 
-                document.getElementById('readyTitle').textContent = t('tapToStart');
-
-                const startHandler = () => {
-                    if (audioContext.state === 'suspended') audioContext.resume();
-                    document.getElementById('startOverlay').classList.add('hidden');
-                    document.removeEventListener('click', startHandler);
-                    document.removeEventListener('touchstart', startHandler);
-                    togglePlay();
-                };
-                document.addEventListener('click', startHandler);
-                document.addEventListener('touchstart', startHandler);
-
+                document.getElementById('startOverlay').classList.add('hidden');
                 document.getElementById('btnPlayPause').disabled = false;
+                
+                togglePlay();
+
+                // 尝试自动开始，如果音频上下文被挂起，则在首次交互时恢复
+                if (audioContext.state === 'suspended') {
+                    const resumeAudio = () => {
+                        if (audioContext.state === 'suspended') audioContext.resume();
+                        document.removeEventListener('click', resumeAudio);
+                        document.removeEventListener('touchstart', resumeAudio);
+                    };
+                    document.addEventListener('click', resumeAudio);
+                    document.addEventListener('touchstart', resumeAudio);
+                }
             } catch (err) {
                 document.getElementById('readyTitle').innerHTML = `<span style="color:#ff4444">${t('loadFailed')}: ${err.message}</span>`;
             }
@@ -764,6 +768,39 @@
             updateAndDrawEffects();
             requestAnimationFrame(gameLoop);
         }
+    </script>
+    <script>
+        // --- 全局通用 UI 按钮音效 ---
+        const uiBtnSfxContext = new (window.AudioContext || window.webkitAudioContext)();
+        let uiBtnSfxBuffer = null;
+        
+        ['click', 'touchstart', 'mousedown'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (uiBtnSfxContext.state === 'suspended') uiBtnSfxContext.resume();
+            }, { once: true });
+        });
+
+        fetch('sfx/index_choose.mp3')
+            .then(res => res.arrayBuffer())
+            .then(data => uiBtnSfxContext.decodeAudioData(data))
+            .then(buffer => uiBtnSfxBuffer = buffer)
+            .catch(e => console.warn('UI音效加载失败', e));
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.btn, button')) {
+                if (uiBtnSfxBuffer) {
+                    if (uiBtnSfxContext.state === 'suspended') uiBtnSfxContext.resume();
+                    const source = uiBtnSfxContext.createBufferSource();
+                    source.buffer = uiBtnSfxBuffer;
+                    const gainNode = uiBtnSfxContext.createGain();
+                    let vol = parseInt(localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 30) / 100;
+                    gainNode.gain.value = vol;
+                    source.connect(gainNode);
+                    gainNode.connect(uiBtnSfxContext.destination);
+                    source.start(0);
+                }
+            }
+        }, true);
     </script>
 </body>
 

@@ -1527,7 +1527,7 @@
             tryExitFullscreen();
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 100);
+            }, 300);
         });
 
         document.getElementById('btnToggleFullscreen').addEventListener('click', () => {
@@ -1655,6 +1655,39 @@
         updateTimingPoints();
         handleOrientationAndFullscreen(); // 初始化横竖屏检测
         requestAnimationFrame(render);
+    </script>
+    <script>
+        // --- 全局通用 UI 按钮音效 ---
+        const uiBtnSfxContext = new (window.AudioContext || window.webkitAudioContext)();
+        let uiBtnSfxBuffer = null;
+        
+        ['click', 'touchstart', 'mousedown'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (uiBtnSfxContext.state === 'suspended') uiBtnSfxContext.resume();
+            }, { once: true });
+        });
+
+        fetch('sfx/index_choose.mp3')
+            .then(res => res.arrayBuffer())
+            .then(data => uiBtnSfxContext.decodeAudioData(data))
+            .then(buffer => uiBtnSfxBuffer = buffer)
+            .catch(e => console.warn('UI音效加载失败', e));
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.btn, button')) {
+                if (uiBtnSfxBuffer) {
+                    if (uiBtnSfxContext.state === 'suspended') uiBtnSfxContext.resume();
+                    const source = uiBtnSfxContext.createBufferSource();
+                    source.buffer = uiBtnSfxBuffer;
+                    const gainNode = uiBtnSfxContext.createGain();
+                    let vol = parseInt(localStorage.getItem('slime_sfxVol') !== null ? localStorage.getItem('slime_sfxVol') : 30) / 100;
+                    gainNode.gain.value = vol;
+                    source.connect(gainNode);
+                    gainNode.connect(uiBtnSfxContext.destination);
+                    source.start(0);
+                }
+            }
+        }, true);
     </script>
 </body>
 
