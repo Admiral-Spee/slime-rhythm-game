@@ -1,0 +1,60 @@
+{
+  "FileReferences": {
+    "Moc": "v2_clb01_21miku_t03.moc3",
+    "Motions": {
+      "w-adult12-glad": [
+        {
+          "FadeInTime": 0.5,
+          "FadeOutTime": 0.5,
+          "File": "motions/w-adult12-glad.motion3.json"
+        }
+      ],
+      "face_band_closeeye_03": [
+        {
+          "FadeInTime": 0.5,
+          "FadeOutTime": 0.5,
+          "File": "motions/face_band_closeeye_03.motion3.json"
+        }
+      ],
+      "face_band_smile_08": [
+        {
+          "FadeInTime": 0.5,
+          "FadeOutTime": 0.5,
+          "File": "motions/face_band_smile_08.motion3.json"
+        }
+      ],
+      "w-adult01-shakehand": [
+        {
+          "FadeInTime": 0.5,
+          "FadeOutTime": 0.5,
+          "File": "motions/w-adult01-shakehand.motion3.json"
+        }
+      ],
+      "w-normal01-glad": [
+        {
+          "FadeInTime": 0.5,
+          "FadeOutTime": 0.5,
+          "File": "motions/w-normal01-glad.motion3.json"
+        }
+      ]
+    },
+    "Physics": "v2_clb01_21miku_t03.physics3.json",
+    "Textures": [
+      "v2_clb01_21miku_t03.2048/texture_00.png",
+      "v2_clb01_21miku_t03.2048/texture_01.png"
+    ]
+  },
+  "Groups": [
+    {
+      "Ids": [],
+      "Name": "EyeBlink",
+      "Target": "Parameter"
+    },
+    {
+      "Ids": [],
+      "Name": "LipSync",
+      "Target": "Parameter"
+    }
+  ],
+  "Version": 3
+}

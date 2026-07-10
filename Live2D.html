@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Live2D Player</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --theme-hue: 0deg;
+      --bg-color: hsl(calc(215deg + var(--theme-hue)), 45%, 12%);
+    }
+
+    body {
+      background-color: var(--bg-color);
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #loading-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 10000;
+      background-color: var(--bg-color);
+      transition: opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    .bg-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 30%, hsl(calc(204deg + var(--theme-hue)), 40%, 28%) 0%, var(--bg-color) 70%);
+      z-index: 1;
+    }
+
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(ellipse 30px 1.5px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(ellipse 1.5px 30px at 50% 50%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(circle 2.5px at 50% 50%, rgba(255, 255, 255, 1), transparent),
+        radial-gradient(ellipse 20px 1px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(ellipse 1px 20px at 20% 80%, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(circle 1.5px at 20% 80%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(ellipse 12px 1px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(ellipse 1px 12px at 80% 30%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(circle 1px at 80% 30%, rgba(255, 255, 255, 0.6), transparent);
+      background-size: 550px 550px, 550px 550px, 550px 550px,
+        350px 350px, 350px 350px, 350px 350px,
+        250px 250px, 250px 250px, 250px 250px;
+      background-position: 0 0, 0 0, 0 0,
+        40px 60px, 40px 60px, 40px 60px,
+        130px 270px, 130px 270px, 130px 270px;
+      opacity: 0.5;
+      z-index: 2;
+    }
+
+    .expanding-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .expanding-circle.expand {
+      animation: circleExpand 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    @keyframes circleExpand {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+      }
+
+      100% {
+        width: 300vmax;
+        height: 300vmax;
+        opacity: 1;
+      }
+    }
+
+    #particle-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+    }
+  </style>
+
+  <!-- Loading Layer -->
+  <div id="loading-layer">
+    <div class="bg-glow"></div>
+    <div class="stars"></div>
+    <div class="expanding-circle" id="white-circle"></div>
+    <canvas id="particle-canvas"></canvas>
+  </div>
+
+  <!-- Live2D 看板娘容器 -->
+  <div id="live2d-wrapper">
+    <div id="live2d-bg"></div>
+    <canvas id="live2d-canvas"></canvas>
+    <div id="live2d-dialog"></div>
+  </div>
+
+  <!-- 1. PixiJS -->
+  <script src="https://unpkg.com/pixi.js@6/dist/browser/pixi.min.js"></script>
+
+  <!-- 2. Live2D Cubism Core -->
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+
+  <!-- 3. pixi-live2d-display -->
+  <script src="https://unpkg.com/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+
+  <script>
+    (function () {
+      const wrapper = document.getElementById('live2d-wrapper');
+      const canvas = document.getElementById('live2d-canvas');
+      const dialogBox = document.getElementById('live2d-dialog');
+
+      // ======= 加载层初始化 =======
+      const savedHue = localStorage.getItem('slime_hue');
+      if (savedHue !== null) {
+        document.documentElement.style.setProperty('--theme-hue', savedHue + 'deg');
+      }
+
+      const loadingLayer = document.getElementById('loading-layer');
+      const whiteCircle = document.getElementById('white-circle');
+      const particleCanvas = document.getElementById('particle-canvas');
+      const pCtx = particleCanvas.getContext('2d');
+
+      let isModelLoaded = false;
+      let isIntroAnimationFinished = false;
+      let triggerLive2DStart = null;
+      let animFadeOutStarted = false;
+
+      // 测试开关：设为 true 时强制加载等待 5 秒
+      const TEST_5S_LOAD = false;
+
+      const enterAudio = new Audio('./sfx/enter.mp3');
+      enterAudio.play().catch(e => console.warn('自动播放enter.mp3被拦截', e));
+
+      whiteCircle.classList.add('expand');
+
+      function resizeCanvas() {
+        particleCanvas.width = window.innerWidth;
+        particleCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      const particles = [];
+      const isMobileDevice = window.innerWidth <= 768;
+      const particleCount = isMobileDevice ? 120 : 250; // 移动端减少粒子数量以优化性能
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      // 计算屏幕对角线距离，作为圆形爆裂的最大半径
+      const maxDist = Math.sqrt(centerX * centerX + centerY * centerY) + 50;
+
+      // 使用圆形分布，这样爆裂时会呈现完美的圆形扩散
+      for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const targetDist = (0.1 + Math.random() * 0.9) * maxDist;
+        const targetX = centerX + Math.cos(angle) * targetDist;
+        const targetY = centerY + Math.sin(angle) * targetDist;
+
+        const size = 10 + Math.random() * 40;
+        const hue = Math.random() * 360;
+
+        // 性能优化：为每个碎片预先在一个离屏画布上绘制好（包括复杂的多重渐变和发光），避免在主循环中逐帧重复绘制带来卡顿
+        const pCanvas = document.createElement('canvas');
+        const padding = 20; // 留出发光的空间
+        pCanvas.width = size + padding * 2;
+        pCanvas.height = size + padding * 2;
+        const offCtx = pCanvas.getContext('2d');
+
+        offCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
+
+        const gradient = offCtx.createLinearGradient(-size / 2, -size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 85%, 0.85)`);
+        gradient.addColorStop(0.5, `hsla(${(hue + 45) % 360}, 100%, 85%, 0.85)`);
+        gradient.addColorStop(1, `hsla(${(hue + 90) % 360}, 100%, 85%, 0.85)`);
+
+        offCtx.fillStyle = gradient;
+
+        offCtx.beginPath();
+        offCtx.moveTo(0, -size / 2);
+        offCtx.lineTo(size / 2, size / 2);
+        offCtx.lineTo(-size / 2, size / 2);
+        offCtx.closePath();
+        offCtx.fill();
+
+        offCtx.lineJoin = 'round';
+        for (let w = 15; w >= 3; w -= 3) {
+          offCtx.lineWidth = w;
+          offCtx.strokeStyle = gradient;
+          offCtx.globalAlpha = 0.05 + (15 - w) * 0.015;
+          offCtx.stroke();
+        }
+
+        offCtx.globalAlpha = 0.6;
+        offCtx.lineWidth = 1;
+        offCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        offCtx.stroke();
+
+        particles.push({
+          x: centerX,
+          y: centerY,
+          startX: centerX,
+          startY: centerY,
+          targetDist: targetDist,
+          angle: angle,
+          vx: 0,
+          vy: 0,
+          baseVx: Math.cos(angle) * (0.05 + Math.random() * 0.125),
+          baseVy: Math.sin(angle) * (0.05 + Math.random() * 0.125),
+          size: size,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.02,
+          hue: hue,
+          img: pCanvas,
+          imgSize: pCanvas.width
+        });
+      }
+
+      let animationStartTime = Date.now();
+      let animFrameId;
+      let currentPhase = 1; // 1: 爆裂 (0~0.3s), 2: 等待与飘散 (>=0.3s), 3: 淡出与加速 (0.3s)
+      let phase3StartTime = 0;
+
+      function renderParticles() {
+        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+        const elapsed = Date.now() - animationStartTime;
+
+        if (currentPhase === 1 && elapsed >= 300) {
+          currentPhase = 2;
+          document.querySelector('.bg-glow').style.display = 'none';
+          document.querySelector('.stars').style.display = 'none';
+        }
+
+        const waitTime = TEST_5S_LOAD ? 5000 : 1700;
+        if (currentPhase === 2 && elapsed >= waitTime && isModelLoaded && !animFadeOutStarted) {
+          currentPhase = 3;
+          animFadeOutStarted = true;
+          phase3StartTime = Date.now();
+          loadingLayer.style.opacity = '0';
+          setTimeout(() => {
+            loadingLayer.style.display = 'none';
+            if (triggerLive2DStart) triggerLive2DStart();
+          }, 300);
+        }
+
+        particles.forEach(p => {
+          if (currentPhase === 1) {
+            // Phase 1 (0-300ms): 快 -> 慢 (easeOutCubic)
+            const t = Math.min(elapsed / 300, 1.0);
+            const easeT = 1 - Math.pow(1 - t, 3);
+
+            const currentDist = p.targetDist * easeT;
+            const newX = centerX + Math.cos(p.angle) * currentDist;
+            const newY = centerY + Math.sin(p.angle) * currentDist;
+
+            // 记录瞬时速度，方便平滑过渡到阶段2
+            p.vx = newX - p.x;
+            p.vy = newY - p.y;
+            p.x = newX;
+            p.y = newY;
+          } else if (currentPhase === 2) {
+            // Phase 2: 缓慢飘散期
+            p.vx = p.vx * 0.95 + p.baseVx * 0.05;
+            p.vy = p.vy * 0.95 + p.baseVy * 0.05;
+            p.x += p.vx;
+            p.y += p.vy;
+          } else if (currentPhase === 3) {
+            // Phase 3 (0-300ms): 慢 -> 快 (easeInCubic 加速向外)
+            const phase3Elapsed = Date.now() - phase3StartTime;
+            const t3 = Math.min(phase3Elapsed / 300, 1.0);
+            const easeT3 = t3 * t3 * t3; // easeInCubic
+
+            const dx = p.x - centerX;
+            const dy = p.y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            const dirX = dx / dist;
+            const dirY = dy / dist;
+
+            const accel = easeT3 * 10;
+            p.vx += dirX * accel;
+            p.vy += dirY * accel;
+
+            p.x += p.vx;
+            p.y += p.vy;
+          }
+
+          p.rotation += p.rotSpeed;
+
+          pCtx.save();
+          pCtx.translate(p.x, p.y);
+          pCtx.rotate(p.rotation);
+
+          // 直接绘制预渲染好的离屏画布，性能极高
+          pCtx.drawImage(p.img, -p.imgSize / 2, -p.imgSize / 2);
+
+          pCtx.restore();
+        });
+
+        if (loadingLayer.style.display !== 'none') {
+          animFrameId = requestAnimationFrame(renderParticles);
+        }
+      }
+
+      renderParticles();
+
+      // ======= 音乐配置 =======
+      const MUSIC_URL = "./assets/music.mp3";                                          // 此处更换音乐
+      const bgm = new Audio(MUSIC_URL);
+      bgm.preload = "auto";
+
+      const bgLayer = document.getElementById('live2d-bg');
+
+      // 限制分辨率，避免手机上超大画布导致 WebGL 崩溃
+      const RESOLUTION = Math.min(window.devicePixelRatio || 1, 2);
+
+      const app = new PIXI.Application({
+        view: canvas,
+        autoStart: true,
+        transparent: true,
+        autoDensity: true,           // 仍然自适应 DPR，但最多放大到 2 倍
+        resolution: RESOLUTION,
+        antialias: true,
+      });
+
+      // ======= 依赖检查 =======
+      if (!PIXI.live2d || !PIXI.live2d.Live2DModel) {
+        console.error('pixi-live2d-display 未正确加载');
+        return;
+      }
+      const Live2DModel = PIXI.live2d.Live2DModel;
+      const MotionPriority = PIXI.live2d.MotionPriority;
+
+      // ======= 模型配置 =======
+      const MODEL_URL = "./assets/v2_clb01_21miku_t03/v2_clb01_21miku_t03.model3.json";             // 此处更换模型文件（.model3.json）
+
+      // ======= 加载模型 =======
+      Live2DModel.from(MODEL_URL, { autoInteract: false }).then(model => {
+        app.stage.addChild(model);
+
+        // 禁用 idle 自动待机动作
+        if (model.internalModel.motionManager && model.internalModel.motionManager.groups) {
+          model.internalModel.motionManager.groups.idle = '';
+        }
+
+        // ======= 响应式布局 =======
+        function layoutModel() {
+          // 用实际 DOM 尺寸，而不是 renderer 内部尺寸
+          const rect = wrapper.getBoundingClientRect();
+          const w = rect.width;
+          const h = rect.height;
+
+          const isMobile = window.innerWidth <= 768;
+
+          if (isMobile) {
+            // 移动端布局：中心对齐，适当缩小以适配竖屏视口
+            model.anchor.set(0.5, 0.5);    // 以人物中心为锚点
+            model.scale.set(0.2);
+
+            model.x = w * 0.5;
+            model.y = h - 300;
+          } else {
+            // PC端布局：底部对齐，保持较大比例
+            model.anchor.set(0.5, 0.35);
+            model.scale.set(0.3);
+
+            model.x = w * 0.5;
+            model.y = h * 0.5;
+          }
+        }
+
+        function resizeApp() {
+          const rect = wrapper.getBoundingClientRect();
+          app.renderer.resize(rect.width, rect.height);
+          layoutModel();
+        }
+
+        // 初始化并监听各类窗口尺寸变化事件
+        resizeApp();
+        ['resize', 'orientationchange', 'fullscreenchange', 'webkitfullscreenchange'].forEach(ev => {
+          window.addEventListener(ev, resizeApp);
+        });
+
+        // ======= 鼠标控制视线 =======
+        window.addEventListener('pointermove', (event) => {
+          const rect = canvas.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+          model.focus(x, y);
+        });
+
+        // ======= 异步延迟工具函数 =======
+        function delay(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ======= 封装动作播放：身体动作 =======
+        function playBodyMotion(groupName, priority = MotionPriority.FORCE) {
+          const settings = model.internalModel.settings;
+          const motions = settings.motions || settings.Motions || {};
+          const group = motions[groupName];
+          if (!group || !group.length) {
+            console.warn('没有找到身体动作组:', groupName);
+            return;
+          }
+          return model.motion(groupName, 0, priority);
+        }
+
+        // ======= 封装动作播放：面部表情 =======
+        function playFaceMotion(groupName, priority = MotionPriority.FORCE) {
+          const settings = model.internalModel.settings;
+          const motions = settings.motions || settings.Motions || {};
+          const group = motions[groupName];
+          if (!group || !group.length) {
+            console.warn('没有找到面部动作组:', groupName);
+            return;
+          }
+          return model.motion(groupName, 0, priority);
+        }
+
+        // ======= 眨眼 =======
+        const coreModel = model.internalModel.coreModel;
+        const EYE_L_ID = 'ParamEyeLOpen';
+        const EYE_R_ID = 'ParamEyeROpen';
+
+        // 眨眼状态机
+        let blinkState = 'wait';   // 'wait' | 'closing' | 'opening'
+        let waitTimer = 0;
+        let phaseTimer = 0;
+        let nextBlinkTime = 2 + Math.random() * 3;   // 下一次眨眼间隔（秒）
+        const blinkPhaseDuration = 0.08;             // 闭眼 / 睁眼各自时长（秒）
+
+        // 每次眨眼前记录当时的基础眼睛开合
+        let baseEyeL = 1.0;
+        let baseEyeR = 1.0;
+
+        app.ticker.add(() => {
+          if (!coreModel) return;
+
+          // 用真实时间，每帧毫秒 / 1000
+          const dt = app.ticker.deltaMS / 1000;
+
+          if (blinkState === 'wait') {
+            // 等待下一次眨眼
+            waitTimer += dt;
+            if (waitTimer >= nextBlinkTime) {
+              waitTimer = 0;
+              blinkState = 'closing';
+              phaseTimer = 0;
+
+              // 每次眨眼前，记录当前眼睛基础值（可能不是 1）
+              baseEyeL = coreModel.getParameterValueById(EYE_L_ID);
+              baseEyeR = coreModel.getParameterValueById(EYE_R_ID);
+            }
+          } else if (blinkState === 'closing') {
+            // 闭眼阶段
+            phaseTimer += dt;
+            let t = phaseTimer / blinkPhaseDuration;
+            if (t > 1) t = 1;
+
+            const vL = baseEyeL * (1 - t);
+            const vR = baseEyeR * (1 - t);
+            coreModel.setParameterValueById(EYE_L_ID, vL);
+            coreModel.setParameterValueById(EYE_R_ID, vR);
+
+            if (t >= 1) {
+              blinkState = 'opening';
+              phaseTimer = 0;
+            }
+          } else if (blinkState === 'opening') {
+            // 睁眼阶段
+            phaseTimer += dt;
+            let t = phaseTimer / blinkPhaseDuration;
+            if (t > 1) t = 1;
+
+            const vL = baseEyeL * t;
+            const vR = baseEyeR * t;
+            coreModel.setParameterValueById(EYE_L_ID, vL);
+            coreModel.setParameterValueById(EYE_R_ID, vR);
+
+            if (t >= 1) {
+              blinkState = 'wait';
+              waitTimer = 0;
+              nextBlinkTime = 2 + Math.random() * 3;   // 下一次眨眼间隔再随机
+            }
+          }
+        });
+
+
+        // ======= 开场动作 =======
+        async function playOpeningAnimation() {                                   // 此处更改开场动作
+          playBodyMotion('w-adult12-glad');
+          await delay(1000);
+          playFaceMotion('face_band_closeeye_03');
+          await delay(500); // 给一点表情过渡时间
+        }
+
+        // ======= LRC歌词 =======
+        const lrcText = `
+[00:00.00]きっと届くはず　きっと見えるはず 
+一定能传达给你　一定能把你看见
+[00:09.34]そんな会ってみたい未来を　僕はひとりきりのセカイで 
+那般我们想追逐的未来　有我在这孤身一人的世界
+[00:15.06]ずっとそう歌うたっていた 
+一直这样歌唱着它们
+[00:19.98]
+[00:27.47]今聞こえたよ　ほら少しだけ 
+现在我听到了　你看我能够稍微
+[00:33.65]君を感じたよ　メロディーがリンクする 
+感受到你了啊　旋律交织将我们连结
+[00:40.42]今繋がるよ　今重なるよ 
+此刻情感相连　此刻心愿交汇
+[00:46.36]伝えたかったこと　山ほどあるんだけどどうしよう 
+想要传达的心意　堆得像山一样　该怎么办呢
+[00:54.50]
+[00:57.35]見たこともない顔で　君は君をダメと言うけど 
+你面露我所未见的神情　坦言自己百无一用
+[01:02.52]未来にいる理想の君を　今の君に押し付け過ぎないで 
+但我愿你不必过于执着　去强求未来那个完美的你
+[01:10.25]見たこともない景色　見せ合ういつかが来るまで 
+未曾见过的光景　直至将其互相分享的那天到来
+[01:15.19]つらいこと　泣きたくなること　たまには預け合おう 
+就把彼此心中的辛酸与热泪　时不时也寄托给对方吧
+[01:21.23]
+[01:21.36]ハロー、セカイ　僕の声はちゃんと届いてるかい 
+Hello,SEKAI　我的声音是否清晰明朗地传到你耳边呢
+[01:27.96]思ったよりも大丈夫　君はひとりなんかじゃない 
+无需为我如此担心　你有我们一路相伴
+[01:34.09]ハロー、セカイ　君の声もちゃんと届いてるよ 
+Hello,SEKAI　你的声音有好好地深入我心
+[01:40.53]思ったよりも最高だ　僕もひとりなんかじゃない 
+那份歌声远超期待　我也不再孤身一人
+[01:46.43]
+[01:46.43]行くよジャンプ　跳ねるダンス 
+来吧 jump　跳起来 dance
+[01:49.63]いらない不安なんて踏んじゃってこう 
+踏过多余的忧虑坚定前进吧
+[01:53.26]ああでもこうでもないも　そんなのどうでもいいよ 
+这样不行那样也不行　这些事情都无所谓啦
+[01:56.38]やりたいようにやろう　ハローハロー 
+随心所欲地放手做吧　Hello Hello
+[01:59.08]
+[01:59.08]もう一回ジャンプ　回るダンス 
+再一次jump!　又一圈dance
+[02:02.24]行きたい未来　きっともうすぐだよ 
+想要去亲历的未来　想必就近在咫尺吧
+[02:05.86]ああでもこうでもないも　そんなのどうでもいいよ 
+这样不行那样也不行　这些事情都无所谓啦
+[02:08.98]やりたいようにやろう 
+随心所欲地放手做吧
+[02:11.93]
+[02:12.02]飛び込んでいこう　僕らのセカイが 
+你我一齐纵身跃入　我们身处的世界
+[02:15.29]正解か不正解かわからなくても 
+其中的对与错即便我们还未理清
+[02:18.14]僕にある想いも　君にある願いも 
+可我所具备的感情　你所具备的心愿
+[02:21.23]きっと消えないんだよ　ずっとセカイは終わらないよ 
+一定不会消失无踪　世界也将永不谢幕
+[02:25.01]
+[02:25.22]今繋がるよ　今重なるよ 
+此刻情感相连　此刻心愿交汇
+[02:31.55]ほら聞こえるよ　ほら伝わるよ僕ら 
+看吧 我们听见了哦　看吧 我们的心声传递出去了哦
+[02:37.92]
+      `;                                                          // 此处更换LRC歌词
+
+        // ======= LRC格式解析 =======
+        function parseLRC(text) {
+          const lines = text.split('\n');
+          const result = [];
+          let lastEntry = null;
+
+          for (let raw of lines) {
+            const line = raw.replace(/\r/g, '');
+            if (!line.trim()) continue;  // 空行直接跳过
+
+            // 匹配时间戳 [mm:ss.ms]
+            const match = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?]/);
+            if (match) {
+              const min = parseInt(match[1], 10);
+              const sec = parseInt(match[2], 10);
+              const ms = match[3] ? parseInt(match[3].padEnd(3, '0'), 10) : 0;
+              const content = line
+                .replace(/\[\d{2}:\d{2}(?:\.\d{1,3})?]/, '')
+                .trim();  // 允许为空，用来关气泡
+
+              const entry = {
+                time: min * 60 + sec + ms / 1000,
+                text: content
+              };
+              result.push(entry);
+              lastEntry = entry;
+            } else {
+              // 无时间标签但有文字：作为上一句的“续行”
+              if (lastEntry) {
+                if (lastEntry.text) {
+                  lastEntry.text += '\n' + line.trim();
+                } else {
+                  lastEntry.text = line.trim();
+                }
+              }
+            }
+          }
+          // 按时间升序排列，确保二分查找或顺序遍历正确
+          return result.sort((a, b) => a.time - b.time);
+        }
+
+        const scriptData = parseLRC(lrcText);
+        let currentIndex = -1;
+        let finishedOnce = false;
+        let lyricsStarted = false;
+        let dialogTimer = null;
+
+        // ======= 台词刷新函数 =======
+        function updateDialog() {
+          if (!scriptData.length) return;
+
+          // 直接读取音频的当前播放时间，确保歌词和音乐绝对同步，无延迟
+          const elapsed = bgm.currentTime;
+          let idx = currentIndex;
+
+          // 倒序遍历查找当前时间点对应的歌词索引
+          for (let i = scriptData.length - 1; i >= 0; i--) {
+            if (elapsed >= scriptData[i].time) {
+              idx = i;
+              break;
+            }
+          }
+
+          if (idx !== currentIndex && idx >= 0) {
+            currentIndex = idx;
+            const line = scriptData[idx];
+
+            if (line.text && line.text.length > 0) {
+              dialogBox.textContent = line.text;
+              dialogBox.classList.add('show');
+            } else {
+              // 文本为空时隐藏对话框
+              dialogBox.textContent = "";
+              dialogBox.classList.remove('show');
+            }
+          }
+
+          // ======= 谢幕动作 =======
+          const lastTime = scriptData[scriptData.length - 1].time;
+          if (!finishedOnce && elapsed >= lastTime) {
+            finishedOnce = true;
+
+            (async () => {                                              // 此处更改谢幕动作
+              playFaceMotion('face_band_smile_08');
+              await delay(300);
+              playBodyMotion('w-adult01-shakehand');
+              await delay(4000);
+              playBodyMotion('w-normal01-glad');
+              await delay(2000); // 让最后的动作展示一会儿
+              window.location.href = 'index.html'; // 自动返回主页
+            })();
+
+            if (dialogTimer) {
+              clearInterval(dialogTimer);
+              dialogTimer = null;
+            }
+          }
+        }
+
+        // ======= 音乐+台词启动函数 =======
+        function startLyrics() {
+          if (lyricsStarted) return;
+          lyricsStarted = true;
+          dialogTimer = setInterval(updateDialog, 50); // 提高刷新频率到 50ms 使字幕更丝滑
+        }
+
+        // 浏览器自动播放策略
+        function startBgmAndLyrics() {
+          bgm.play().then(() => {
+            // 自动播放成功：立刻启动台词
+            startLyrics();
+          }).catch(err => {
+            console.warn("音乐自动播放被浏览器阻止，将在用户点击页面后开始播放和台词。", err);
+            // 自动播放失败：注册一次性点击事件恢复播放
+            const resume = () => {
+              bgm.play().then(() => {
+                startLyrics();
+              }).catch(() => { });
+              document.removeEventListener('click', resume);
+            };
+            document.addEventListener('click', resume, { once: true });
+          });
+        }
+
+        // 模型加载完成后，交由加载层控制启动时机
+        triggerLive2DStart = async () => {
+          await playOpeningAnimation();
+          startBgmAndLyrics();
+        };
+        isModelLoaded = true;
+      }).catch(err => {
+        console.error("Live2D 模型加载失败：", err);
+      });
+    })();
+  </script>
+
+  <style>
+    #live2d-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* 背景图片 */
+    #live2d-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url("./assets/bg_area_25.webp");
+      /* 此处更换背景图片 */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 1;
+      transition: opacity 1.5s ease;
+      /* 渐隐时间 */
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* 渐隐结束状态 */
+    #live2d-bg.fade-out {
+      opacity: 0;
+    }
+
+    #live2d-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 歌词气泡样式 */
+    #live2d-dialog {
+      position: absolute;
+      bottom: 100px;
+      right: 50%;
+      transform: translateX(50%);
+      max-width: 400px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      font-size: 16px;
+      border-radius: 12px;
+      line-height: 1.4;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: pre-line;
+      z-index: 2;
+      text-align: center;
+    }
+
+    #live2d-dialog.show {
+      opacity: 1;
+    }
+
+    /* 移动端特定适配 */
+    @media (max-width: 768px) {
+      #live2d-dialog {
+        bottom: 80px;
+        width: 90%;
+        max-width: 90%;
+        /* 歌词框和文字大小增大100% */
+        font-size: 14px;
+        text-align: center;
+        padding: 6px 8px;
+      }
+    }
+  </style>
+</body>
+
+</html>

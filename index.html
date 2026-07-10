@@ -490,10 +490,14 @@
         <div
             style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-main); background: var(--card-bg); flex-shrink: 0;">
             <div style="display: flex; gap: 8px;">
-                <button id="btnGithub" class="btn" style="padding: 6px 12px; font-size: 13px; background: #24292e;" onclick="setTimeout(() => window.open('https://github.com/Admiral-Spee/slime-rhythm-game', '_blank'), 300)">
-                    <svg height="16" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" style="fill: white; vertical-align: middle; margin-right: 4px;">
-                        <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
-                    </svg>GitHub
+                <button id="btnGithub" class="btn" style="padding: 6px 12px; font-size: 13px; background: #24292e;"
+                    onclick="setTimeout(() => window.open('https://github.com/Admiral-Spee/slime-rhythm-game', '_blank'), 300)">
+                    <svg height="16" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="16"
+                        data-view-component="true" style="fill: white; vertical-align: middle; margin-right: 4px;">
+                        <path
+                            d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+                        </path>
+                    </svg>
                 </button>
             </div>
             <div style="display: flex; gap: 8px;">
@@ -702,6 +706,20 @@
     </div>
 
     <script>
+        // ======= 彩蛋歌曲配置 (Easter Egg Song Config) =======
+        // 修改以下信息可以方便地调整彩蛋卡片的属性或跳转目标
+        const EASTER_EGG_CONFIG = {
+            enabled: true,
+            title: "Untitled.wav",
+            artist: "",
+            cover: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='white' rx='8'/%3E%3Ctext x='50%25' y='55%25' font-size='60' text-anchor='middle' dominant-baseline='middle'%3E🎵%3C/text%3E%3C/svg%3E",
+            levels: [
+                { level: "?" }
+            ],
+            audio: "easter_egg", // 唯一标识符，防止与其他歌曲冲突
+            targetUrl: "Live2D.html"
+        };
+
         // --- 国际化 ---
         const i18n = {
             zh: {
@@ -1402,7 +1420,21 @@
                     };
                 });
 
-                const combinedSongs = [...songs, ...customSongs];
+                let combinedSongs = [...songs];
+
+                if (EASTER_EGG_CONFIG.enabled) {
+                    combinedSongs.push({
+                        id: "easter_egg",
+                        title: EASTER_EGG_CONFIG.title,
+                        artist: EASTER_EGG_CONFIG.artist,
+                        cover: EASTER_EGG_CONFIG.cover,
+                        audio: EASTER_EGG_CONFIG.audio,
+                        levels: EASTER_EGG_CONFIG.levels,
+                        isEasterEgg: true
+                    });
+                }
+
+                combinedSongs = [...combinedSongs, ...customSongs];
 
                 // 在列尾追加一个“添加自定义歌曲卡片”
                 combinedSongs.push({
@@ -1663,8 +1695,8 @@
                 diffSelector.appendChild(btn);
             });
 
-            // 自定义歌曲的上半部分也不再显示自定义谱面按钮
-            if (!song.isCustom) {
+            // 自定义歌曲与彩蛋歌曲的上半部分不再显示自定义谱面按钮
+            if (!song.isCustom && !song.isEasterEgg) {
                 const customBtn = document.createElement('div');
                 customBtn.className = 'diff-btn';
                 customBtn.textContent = '+';
@@ -1687,9 +1719,13 @@
                 btn.style.opacity = '0.7';
 
                 setTimeout(() => {
-                    const audioParam = encodeURIComponent(currentSelectedSong.audio);
-                    const chartParam = encodeURIComponent(currentSelectedLevel.chart);
-                    window.location.href = `game.html?audio=${audioParam}&chart=${chartParam}`;
+                    if (currentSelectedSong.isEasterEgg) {
+                        window.location.href = EASTER_EGG_CONFIG.targetUrl;
+                    } else {
+                        const audioParam = encodeURIComponent(currentSelectedSong.audio);
+                        const chartParam = encodeURIComponent(currentSelectedLevel.chart);
+                        window.location.href = `game.html?audio=${audioParam}&chart=${chartParam}`;
+                    }
                 }, duration * 1000);
             }
         });
