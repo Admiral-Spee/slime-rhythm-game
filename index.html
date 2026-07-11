@@ -886,7 +886,8 @@
         // --- 预载音效资源 ---
         const preloadSfx = [
             'sfx/perfect.mp3', 'sfx/great.mp3', 'sfx/good.mp3', 'sfx/empty.mp3',
-            'sfx/long.mp3', 'sfx/all_perfect.mp3', 'sfx/full_combo.mp3', 'sfx/clear.mp3'
+            'sfx/long.mp3', 'sfx/all_perfect.mp3', 'sfx/full_combo.mp3', 'sfx/clear.mp3',
+            'sfx/enter.mp3'
         ];
         preloadSfx.forEach(src => {
             fetch(src).catch(e => console.warn('预载音效失败:', src));
