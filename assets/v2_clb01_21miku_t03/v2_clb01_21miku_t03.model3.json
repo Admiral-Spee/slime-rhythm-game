@@ -2,6 +2,41 @@
   "FileReferences": {
     "Moc": "v2_clb01_21miku_t03.moc3",
     "Motions": {
+      "face_band_a_01": [
+        {
+          "FadeInTime": 0.2,
+          "FadeOutTime": 0.2,
+          "File": "motions/face_band_a_01.motion3.json"
+        }
+      ],
+      "face_band_i_01": [
+        {
+          "FadeInTime": 0.2,
+          "FadeOutTime": 0.2,
+          "File": "motions/face_band_i_01.motion3.json"
+        }
+      ],
+      "face_band_u_01": [
+        {
+          "FadeInTime": 0.2,
+          "FadeOutTime": 0.2,
+          "File": "motions/face_band_u_01.motion3.json"
+        }
+      ],
+      "face_band_e_01": [
+        {
+          "FadeInTime": 0.2,
+          "FadeOutTime": 0.2,
+          "File": "motions/face_band_e_01.motion3.json"
+        }
+      ],
+      "face_band_o_01": [
+        {
+          "FadeInTime": 0.2,
+          "FadeOutTime": 0.2,
+          "File": "motions/face_band_o_01.motion3.json"
+        }
+      ],
       "w-adult12-glad": [
         {
           "FadeInTime": 0.5,
