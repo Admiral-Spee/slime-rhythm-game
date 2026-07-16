@@ -338,7 +338,7 @@
       const bgm = new Audio(MUSIC_URL);
       bgm.crossOrigin = "anonymous"; // 必须跨域才能被 AudioContext 分析
       bgm.preload = "auto";
-      
+
       // 音频分析器相关变量
       let audioCtx, analyser, dataArray;
 
@@ -517,29 +517,29 @@
               nextBlinkTime = 2 + Math.random() * 3;   // 下一次眨眼间隔再随机
             }
           }
-          
+
           // ======= 音频实时驱动嘴巴张合 =======
           if (analyser && dataArray) {
             analyser.getByteFrequencyData(dataArray);
-            
+
             // 截取人声比较集中的中低频段来计算能量
             let sum = 0;
-            const startBin = 2; 
+            const startBin = 2;
             const endBin = Math.min(50, dataArray.length);
             for (let i = startBin; i < endBin; i++) {
               sum += dataArray[i];
             }
             const average = sum / (endBin - startBin);
-            
+
             // 将音量映射为 0~1 的目标张合度
-            let targetMouthOpen = (average - 5) / 80; 
-            targetMouthOpen = Math.max(0, Math.min(targetMouthOpen, 1));
-            
+            let targetMouthOpen = (average - 5) / 80;
+            targetMouthOpen = Math.max(0, Math.min(targetMouthOpen, 0.5));
+
             // 加入平滑插值 (Lerp)，防止嘴巴像抽搐一样高频抖动
             // currentMouthOpen 越靠近 target，速度越慢。0.15 是平滑系数，越小越平滑但可能会有延迟感
             if (typeof window.currentMouthOpen === 'undefined') window.currentMouthOpen = 0;
             window.currentMouthOpen += (targetMouthOpen - window.currentMouthOpen) * 0.15;
-            
+
             // 实时强制覆盖嘴巴张合参数
             coreModel.setParameterValueById('ParamMouthOpenY', window.currentMouthOpen);
           }
@@ -674,23 +674,36 @@ Hello,SEKAI　你的声音有好好地深入我心
         // ======= 口型同步控制 =======
         let lipSyncTimer = null;
 
-        // 简单的假名->元音映射字典
+        // 歌词专用字典：只包含该首歌曲中出现的平假名、片假名和日文汉字
         const kanaToVowel = {
-          'あ': 'a', 'か': 'a', 'さ': 'a', 'た': 'a', 'な': 'a', 'は': 'a', 'ま': 'a', 'や': 'a', 'ら': 'a', 'わ': 'a',
-          'が': 'a', 'ざ': 'a', 'だ': 'a', 'ば': 'a', 'ぱ': 'a', 'ゃ': 'a', 'ぁ': 'a',
-          'い': 'i', 'き': 'i', 'し': 'i', 'ち': 'i', 'に': 'i', 'ひ': 'i', 'み': 'i', 'り': 'i',
-          'ぎ': 'i', 'じ': 'i', 'ぢ': 'i', 'び': 'i', 'ぴ': 'i', 'ぃ': 'i',
-          'う': 'u', 'く': 'u', 'す': 'u', 'つ': 'u', 'ぬ': 'u', 'ふ': 'u', 'む': 'u', 'ゆ': 'u', 'る': 'u', 'ん': 'u',
-          'ぐ': 'u', 'ず': 'u', 'づ': 'u', 'ぶ': 'u', 'ぷ': 'u', 'ゅ': 'u', 'ぅ': 'u',
-          'え': 'e', 'け': 'e', 'せ': 'e', 'て': 'e', 'ね': 'e', 'へ': 'e', 'め': 'e', 'れ': 'e',
-          'げ': 'e', 'ぜ': 'e', 'で': 'e', 'べ': 'e', 'ぺ': 'e', 'ぇ': 'e',
-          'お': 'o', 'こ': 'o', 'そ': 'o', 'と': 'o', 'の': 'o', 'ほ': 'o', 'も': 'o', 'よ': 'o', 'ろ': 'o', 'を': 'o',
-          'ご': 'o', 'ぞ': 'o', 'ど': 'o', 'ぼ': 'o', 'ぽ': 'o', 'ょ': 'o', 'ぉ': 'o'
+          // ====== 平假名 & 片假名 ======
+          // A 音
+          'あ': 'a', 'は': 'a', 'な': 'a', 'た': 'a', 'ら': 'a', 'だ': 'a', 'が': 'a', 'か': 'a', 'ま': 'a', 'わ': 'a', 'ゃ': 'a', 'ャ': 'a', 'や': 'a', 'ハ': 'a', 'カ': 'a', 'ダ': 'a',
+          // I 音
+          'き': 'i', 'み': 'i', 'ひ': 'i', 'り': 'i', 'い': 'i', 'し': 'i', 'じ': 'i', 'ち': 'i', 'ぎ': 'i', 'び': 'i', 'に': 'i', 'ィ': 'i', 'ジ': 'i', 'リ': 'i', 'イ': 'i',
+          // U 音
+          'ず': 'u', 'る': 'u', 'ん': 'u', 'う': 'u', 'く': 'u', 'す': 'u', 'つ': 'u', 'ぐ': 'u', 'プ': 'u', 'ス': 'u', 'ク': 'u',
+          // E 音
+          'え': 'e', 'て': 'e', 'で': 'e', 'け': 'e', 'せ': 'e', 'ね': 'e', 'れ': 'e', 'め': 'e', 'デ': 'e', 'セ': 'e', 'メ': 'e',
+          // O 音
+          'と': 'o', 'そ': 'o', 'の': 'o', 'こ': 'o', 'よ': 'o', 'ほ': 'o', 'ど': 'o', 'も': 'o', 'ろ': 'o', 'を': 'o', 'ロ': 'o',
+
+          // ====== 日文汉字 ======
+          // A 音 (a, ka, sa, ta, na, ha, ma, ya, ra, wa)
+          '会': 'a', '感': 'a', '重': 'a', '山': 'a', '顔': 'a', '泣': 'a', '預': 'a', '大': 'a', '最': 'a', '跳': 'a', '安': 'a', '回': 'a', '解': 'a',
+          // I 音 (i, ki, shi, chi, ni, hi, mi, ri)
+          '見': 'i', '未': 'i', '今': 'i', '聞': 'i', '君': 'i', '言': 'i', '理': 'i', '色': 'i', '行': 'i', '消': 'i', '一': 'i',
+          // U 音 (u, ku, su, tsu, nu, fu, mu, yu, ru)
+          '来': 'u', '歌': 'u', '少': 'u', '繋': 'u', '伝': 'u', '付': 'u', '過': 'u', '夫': 'u', '不': 'u', '踏': 'u',
+          // E 音 (e, ke, se, te, ne, he, me, re)
+          '景': 'e', '正': 'e', '願': 'e',
+          // O 音 (o, ko, so, to, no, ho, mo, yo, ro, wo)
+          '届': 'o', '僕': 'o', '想': 'o', '押': 'o', '声': 'o', '思': 'o', '丈': 'o', '高': 'o', '飛': 'o', '込': 'o', '终': 'o', '終': 'o'
         };
         const vowels = ['a', 'e', 'i', 'o', 'u']; // 对应的5个外部动作后缀
 
         let lastVowel = 'a'; // 记录上一个发音
-        
+
         function getVowel(char) {
           if (kanaToVowel[char]) {
             lastVowel = kanaToVowel[char];
@@ -709,11 +722,11 @@ Hello,SEKAI　你的声音有好好地深入我心
           if (cleanText.length === 0) return;
 
           let charIndex = 0;
-          
+
           // 根据整句可用时间，平摊给每个字
           // 留出 10% 的时间作为最后闭嘴的缓冲
           let syllableDuration = (durationSeconds * 1000 * 0.9) / cleanText.length;
-          
+
           // 限制每个字的极限时长：最快 80ms，最慢 400ms（防止间奏太长导致嘴巴像慢动作一样张着）
           syllableDuration = Math.max(80, Math.min(syllableDuration, 400));
 
