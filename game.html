@@ -2536,12 +2536,7 @@
                 }
             }
 
-            // 2. 绘制底部的4个静止/弹性史莱姆接收器
             const baseNoteRadius = (w / 12) * slimeScaleFactor;
-            for (let l = 0; l < 4; l++) {
-                const rx = getLaneBottomX(l);
-                drawSlime(ctx, rx, judgeY, baseNoteRadius, LANE_COLORS[l], true, false, activeKeys[l], currentBeat, l);
-            }
 
             // 3. 遍历、更新音符状态，并绘制光轨、收集需要绘制的史莱姆实体
             let slimesToDraw = [];
@@ -2634,6 +2629,12 @@
                 const dynamicRadius = baseNoteRadius * sizeFactor * s.scale;
                 drawSlime(ctx, x, y, dynamicRadius, LANE_COLORS[s.lane], false, s.isMissed, false, s.remBeats, s.lane);
             });
+
+            // 绘制底部的4个静止/弹性史莱姆接收器 (移动到运动音符的上层)
+            for (let l = 0; l < 4; l++) {
+                const rx = getLaneBottomX(l);
+                drawSlime(ctx, rx, judgeY, baseNoteRadius, LANE_COLORS[l], true, false, activeKeys[l], currentBeat, l);
+            }
 
             // 5. 更新爆炸粒子效果
             updateAndDrawEffects();
