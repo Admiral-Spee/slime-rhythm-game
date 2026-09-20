@@ -22,6 +22,32 @@
             --setting-bg: hsla(calc(217deg + var(--theme-hue)), 66%, 12%, 0.95);
         }
 
+        [data-theme="light"] {
+            --bg-color: hsl(calc(215deg + var(--theme-hue)), 35%, 93%);
+            --text-main: #1a2530;
+            --text-sub: hsl(calc(203deg + var(--theme-hue)), 35%, 38%);
+            --container-bg: hsla(calc(216deg + var(--theme-hue)), 40%, 98%, 0.88);
+            --border-main: hsl(calc(197deg + var(--theme-hue)), 75%, 62%);
+            --border-sub: hsla(calc(202deg + var(--theme-hue)), 80%, 65%, 0.4);
+            --border-active: hsl(calc(202deg + var(--theme-hue)), 90%, 65%);
+            --card-bg: hsla(calc(202deg + var(--theme-hue)), 70%, 60%, 0.15);
+            --btn-bg: hsl(calc(207deg + var(--theme-hue)), 85%, 58%);
+            --btn-hover: hsl(calc(207deg + var(--theme-hue)), 85%, 68%);
+            --overlay-bg: hsla(calc(212deg + var(--theme-hue)), 20%, 94%, 0.88);
+            --setting-bg: hsla(calc(217deg + var(--theme-hue)), 30%, 96%, 0.95);
+        }
+
+        [data-theme="light"] .bg-glow {
+            background: radial-gradient(circle at 50% 30%, hsl(calc(204deg + var(--theme-hue)), 60%, 86%) 0%, var(--bg-color) 70%);
+        }
+
+        [data-theme="light"] .stars {
+            opacity: 0.8;
+            filter: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cg fill='%23ffffff' fill-opacity='0.8'%3E%3Cpath d='M100 180 c-15 0-28 12-28 28 0 3 1 6 2 9-10 4-18 13-18 25 0 14 12 25 25 25 h80 c13 0 22-10 22-22 0-10-7-18-16-21 1-2 1-4 1-6 0-20-17-38-38-38-9 0-18 4-25 10z'/%3E%3Cpath d='M400 380 c-18 0-32 14-32 32 0 4 1 7 3 10-12 5-20 16-20 28 0 16 14 28 28 28 h90 c15 0 25-11 25-25 0-11-8-21-18-24 1-3 1-5 1-7 0-23-19-42-42-42-10 0-20 4-28 11z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 750px 750px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -548,6 +574,10 @@
                     <button id="btnLangToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">简体中文</button>
                 </div>
                 <div class="settings-row">
+                    <span data-i18n="themeMode">明暗模式:</span>
+                    <button id="btnThemeToggle" class="btn" style="padding: 4px 12px; font-size: 13px;">🌙 暗黑</button>
+                </div>
+                <div class="settings-row">
                     <span data-i18n="hueAdjust">主色调调整:</span>
                     <input type="range" id="sliderHue" min="0" max="360" value="0">
                 </div>
@@ -733,6 +763,9 @@
                 settings: "⚙️",
                 gameSettings: "游戏设置",
                 editorTip: "编辑器可以创作你自己的谱面",
+                themeMode: "明暗模式:",
+                themeDark: "🌙 暗黑",
+                themeLight: "☀️ 明亮",
                 hueAdjust: "主色调调整:",
                 musicVol: "音乐音量",
                 sfxVol: "音效音量",
@@ -787,6 +820,9 @@
                 settings: "⚙️",
                 gameSettings: "Game Settings",
                 editorTip: "Create your own beatmaps in Editor",
+                themeMode: "Theme Mode:",
+                themeDark: "🌙 Dark",
+                themeLight: "☀️ Light",
                 hueAdjust: "Hue Adjust:",
                 musicVol: "Music Vol",
                 sfxVol: "SFX Vol",
@@ -850,13 +886,39 @@
             });
             const langBtn = document.getElementById('btnLangToggle');
             if (langBtn) langBtn.textContent = currentLang === 'zh' ? '简体中文' : 'English';
+            updateThemeBtn();
             updateAutoPlayBtn();
         }
-        updateUIi18n();
 
         // --- 主题应用 ---
+        let currentThemeMode = 'dark';
         let themeHueOffset = 0;
+
+        function updateThemeBtn() {
+            const themeBtn = document.getElementById('btnThemeToggle');
+            if (themeBtn) {
+                themeBtn.textContent = currentThemeMode === 'light' ? i18n[currentLang].themeLight : i18n[currentLang].themeDark;
+            }
+        }
+
+        function applyThemeMode(mode) {
+            currentThemeMode = mode;
+            if (mode === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            updateThemeBtn();
+        }
+
         function loadLocalSettings() {
+            const savedThemeMode = localStorage.getItem('slime_themeMode');
+            if (savedThemeMode === 'light' || savedThemeMode === 'dark') {
+                applyThemeMode(savedThemeMode);
+            } else {
+                applyThemeMode('dark');
+            }
+
             const savedHue = localStorage.getItem('slime_hue');
             if (savedHue !== null) {
                 themeHueOffset = parseInt(savedHue);
@@ -874,6 +936,7 @@
             });
             updateAutoPlayBtn();
         }
+        updateUIi18n();
         loadLocalSettings();
 
         // --- 预载预设图案资源 ---
@@ -959,6 +1022,11 @@
         // --- 设置事件绑定 ---
         document.getElementById('btnEditor').addEventListener('click', () => { setTimeout(() => window.location.href = 'editor.html', 300); });
         document.getElementById('btnLangToggle').addEventListener('click', () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('slime_lang', currentLang); updateUIi18n(); });
+        document.getElementById('btnThemeToggle').addEventListener('click', () => {
+            const newMode = currentThemeMode === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('slime_themeMode', newMode);
+            applyThemeMode(newMode);
+        });
         document.getElementById('btnOpenSettings').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('hidden'));
         document.getElementById('btnSettingsBack').addEventListener('click', () => document.getElementById('settingsOverlay').classList.add('hidden'));
         document.getElementById('btnAutoPlay').addEventListener('click', () => { isAutoPlay = !isAutoPlay; localStorage.setItem('slime_autoPlay', isAutoPlay); updateAutoPlayBtn(); });

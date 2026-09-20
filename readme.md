@@ -13,7 +13,7 @@
   - PC端使用键盘输入（S, D, J, K）。
   - 移动端直接点击屏幕，支持多点触控。
 - **个性化设置**：
-  - ~~支持亮色 / 暗色模式一键切换。~~ （因为大部分特效无法适配亮色模式，暂时移除了该功能）
+  - 支持亮色 / 暗色模式一键切换。
   - 游戏 UI 主题色调全色相自定义。
   - 内置 3 种预设的音符图案，分别为：初音未来、晓山瑞希和镜音连。
   - 支持为 4 个轨道分别上传自定义音符图案。
@@ -154,7 +154,7 @@ The game mainly references the beat-based falling mechanics of *Rift of the Necr
   - PC: Keyboard input (`S`, `D`, `J`, `K`).
   - Mobile: Direct screen taps with multi-touch support.
 - **Personalization**:
-  - ~~One-click toggle between Light / Dark mode.~~ (Because most special effects cannot be adapted to light mode, this feature has been temporarily removed)
+  - One-click toggle between Light / Dark mode.
   - Fully customizable UI theme color hue.
   - Built-in 3 preset note patterns: Hatsune Miku, Akiyama Mizuki, and Kagamine Len.
   - Supports uploading custom note patterns for each of the 4 lanes.
